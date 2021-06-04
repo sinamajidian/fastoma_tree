@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[9]:
+# In[31]:
 
 
 #!/usr/bin/python3
@@ -24,10 +24,10 @@ from collections import defaultdict
 # query_protein= argv[3] # 
 
 
-# In[2]:
+# In[32]:
 
 
-oma_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1e/omamer_out_Eukaryota_que3.fa"
+oma_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/omamer_out_Eukaryota_que3.fa"
 oma_output_file = open(oma_output_address,'r');
 
 list_query_protein_name= []
@@ -41,7 +41,7 @@ for line in oma_output_file:
         list_query_inferred_hog.append(line_split[1])
 
 
-# In[3]:
+# In[33]:
 
 
 #print(list_query_inferred_hog)
@@ -54,7 +54,7 @@ for hog_unique in list_inferred_hog_unique:
 #print(list_idx_query_per_uniq_hog)
 
 
-# In[4]:
+# In[34]:
 
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
@@ -78,15 +78,15 @@ for  item_idx in range(unique_num):
           "out of", len(OGs_correspond_proteins),"\n")
 
 
-# In[5]:
+# In[35]:
 
 
-query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1e/query3.fa"
+query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query3.fa"
 query_protein_records = list(SeqIO.parse(query_protein, "fasta")) 
 print(len(query_protein_records))
 
 
-# In[6]:
+# In[66]:
 
 
 seqRecords_all=[]
@@ -96,7 +96,7 @@ for  item_idx in range(unique_num):
     OG_members = oma_db.oma_group_members(mostFrequent_OG)
     proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
     seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.omaid), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
-    
+    # genome.uniprot_species_code
     seqRecords_queries = []
     for i in  list_idx_query_per_uniq_hog[item_idx]:
         seqRecords_queries.append(query_protein_records[i])
@@ -106,7 +106,7 @@ for  item_idx in range(unique_num):
     seqRecords_all.append(seqRecords)
 
 
-# In[7]:
+# In[67]:
 
 
 ############## MSA  ##############
@@ -132,7 +132,7 @@ for  item_idx in range(unique_num):
     handle_msa_fasta.close()
 
 
-# In[10]:
+# In[68]:
 
 
 ############## Concatante alignments  ##############
@@ -140,7 +140,7 @@ for  item_idx in range(unique_num):
 
 alignments= result_maf2_all
 all_labels = set(seq.id for aln in alignments for seq in aln)
-len(all_labels)
+print(len(all_labels))
 
 # Make a dictionary to store info as we go along
 # (defaultdict is convenient -- asking for a missing key gives back an empty list)
@@ -169,9 +169,10 @@ for aln in alignments:
 # and build the Biopython data structures Seq, SeqRecord and MultipleSeqAlignment
 msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), id=label)
                             for (label, seq_arr) in concat_buf.items())
+print(len(msa),msa.get_alignment_length()) 
 
 
-# In[ ]:
+# In[63]:
 
 
 ############## Tree inference  ###################
@@ -189,13 +190,13 @@ print(len(tree_nwk))
 
 
 
-out_name_tree="tree_00.txt"
+out_name_tree="tree_01.txt"
 file1 = open(out_name_tree,"w")
 file1.write(tree_nwk)
 file1.close() 
 
 
-# In[15]:
+# In[ ]:
 
 
 
