@@ -95,8 +95,8 @@ for  item_idx in range(unique_num):
 
     OG_members = oma_db.oma_group_members(mostFrequent_OG)
     proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
-    seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.omaid), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
-    # genome.uniprot_species_code
+    seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.genome.uniprot_species_code), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
+    
     seqRecords_queries = []
     for i in  list_idx_query_per_uniq_hog[item_idx]:
         seqRecords_queries.append(query_protein_records[i])
