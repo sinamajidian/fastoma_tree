@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[68]:
+# In[42]:
 
 
 #!/usr/bin/python3
@@ -21,14 +21,26 @@ from collections import defaultdict
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
-omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query2b.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
-query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query2b.fa" #v1d-omamer/query3.fa"
+omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2a/HUMAN_q.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
+query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2a/HUMAN_q.fa" #v1d-omamer/query3.fa"
+
+# The species name of query is the name of the file; for HUMAN_q.fa will be "HUMAN_q"
 
 # oma_output_address = argv[1] 
 # oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
 
 
-# In[69]:
+# In[23]:
+
+
+################### Parsing  query protein  ########
+#####################################################
+
+query_protein_records = list(SeqIO.parse(query_protein_address, "fasta")) 
+print(len(query_protein_records))
+
+
+# In[27]:
 
 
 ################### Parsing omamer's output  ########
@@ -44,18 +56,24 @@ for line in omamer_output_file:
         line_split= line_strip.split("\t")        
         list_query_protein_name.append(line_split[0])
         list_query_inferred_hog.append(line_split[1])
+print("number of proteins in omamer output",len(list_query_inferred_hog),list_query_inferred_hog)
 
 
-# In[70]:
+# In[71]:
 
 
 ############# Extracting the unique HOG list  ########
 #####################################################
 list_inferred_hog_unique = list(set(list_query_inferred_hog))
+
+
 if len(list_inferred_hog_unique) == len(list_query_inferred_hog):
     list_inferred_hog_unique = list_query_inferred_hog
     list_idx_query_of_uniq_hog = list(range(len(list_inferred_hog_unique)))
 else: #   remove those queries of reptead hogs
+    
+    list_idx_query_of_uniq_hog=[1,3]
+    
     print(" to be coded")
 #     list_idx_query_per_uniq_hog=[]      
 #     for hog_unique in list_inferred_hog_unique:
@@ -64,11 +82,19 @@ else: #   remove those queries of reptead hogs
 #         indx_list=[i for i, x in enumerate(list_query_inferred_hog) if x == hog_unique]  # [[0], [1,2,3], ]
 #         list_idx_query_per_uniq_hog.append(indx_list)
 
-unique_num=len(list_inferred_hog_unique)
+list_idx_query_of_uniq_hog=[1,3]
+
+unique_num=len(list_idx_query_of_uniq_hog)
 print(unique_num)
 
 
-# In[71]:
+# In[ ]:
+
+
+
+
+
+# In[36]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -95,24 +121,14 @@ for  item_idx in range(unique_num):
           "out of", len(OGs_correspond_proteins),"\n")
 
 
-# In[72]:
-
-
-query_protein_records = list(SeqIO.parse(query_protein, "fasta")) 
-print(len(query_protein_records))
-
-
-# In[73]:
-
-
-mostFrequent_OG_list, list_idx_query_of_uniq_hog
-
-
-# In[74]:
+# In[66]:
 
 
 ########## Combine proteins of OG with queries ##################
 #################################################################
+
+query_species_name = ''.join(query_protein_address.split("/")[-1].split(".")[:-1]) #'/work/fastoma/v2a/HUMAN_q.fa'
+
 
 seqRecords_all=[]
 for  item_idx in range(unique_num):
@@ -126,7 +142,8 @@ for  item_idx in range(unique_num):
     print("For query index",index_query_protein,"name",list_query_protein_name[index_query_protein] )
     seqRecords_query = query_protein_records[index_query_protein]
     
-    seqRecords =seqRecords_OG + [seqRecords_query]
+    seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
+    seqRecords =seqRecords_OG + [seqRecords_query_edited]
     seqRecords_all.append(seqRecords)
     
     print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords),"\n")
@@ -134,7 +151,7 @@ for  item_idx in range(unique_num):
 print("number of OGs",len(seqRecords_all))
 
 
-# In[75]:
+# In[67]:
 
 
 ############## MSA  ##############
@@ -160,7 +177,7 @@ for  item_idx in range(unique_num):
     handle_msa_fasta.close()
 
 
-# In[76]:
+# In[68]:
 
 
 ############## Concatante alignments  ##############
@@ -206,7 +223,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) 
 
 
-# In[77]:
+# In[69]:
 
 
 ############## Tree inference  ###################
@@ -230,38 +247,8 @@ file1.write(tree_nwk)
 file1.close() 
 
 
-# In[80]:
+# In[70]:
 
 
-#tree_nwk
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+tree_nwk
 
