@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[31]:
+# In[6]:
 
 
 #!/usr/bin/python3
@@ -19,21 +19,26 @@ from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from collections import defaultdict
 
-#my_hog_id = argv[1]     # hog id output of OMAmer 
-#oma_database = argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
-# query_protein= argv[3] # 
+oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
+
+omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/omamer_out_Eukaryota_q2.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
+query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/HUMAN48905.fa" #v1d-omamer/query3.fa"
+
+# oma_output_address = argv[1] 
+# oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
 
 
-# In[32]:
+# In[7]:
 
 
-oma_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/omamer_out_Eukaryota_que3.fa"
-oma_output_file = open(oma_output_address,'r');
+################### Parsing omamer's output  ########
+#####################################################
+omamer_output_file = open(omamer_output_address,'r');
 
 list_query_protein_name= []
 list_query_inferred_hog= []
 
-for line in oma_output_file:
+for line in omamer_output_file:
     line_strip=line.strip()
     if not line_strip.startswith('qs'):
         line_split= line_strip.split("\t")        
@@ -41,27 +46,38 @@ for line in oma_output_file:
         list_query_inferred_hog.append(line_split[1])
 
 
-# In[33]:
+# In[8]:
 
 
-#print(list_query_inferred_hog)
+############# Extracting the unique HOG list  ########
+#####################################################
 list_inferred_hog_unique = list(set(list_query_inferred_hog))
-list_idx_query_per_uniq_hog=[]
+if len(list_inferred_hog_unique) == len(list_query_inferred_hog):
+    list_inferred_hog_unique = list_query_inferred_hog
+    list_idx_query_of_uniq_hog = list(range(len(list_inferred_hog_unique)))
+else: #   remove those queries of reptead hogs
+    print(" to be coded")
+#     list_idx_query_per_uniq_hog=[]      
+#     for hog_unique in list_inferred_hog_unique:
 
-for hog_unique in list_inferred_hog_unique:
-    indx_list=[i for i, x in enumerate(list_query_inferred_hog) if x == hog_unique]
-    list_idx_query_per_uniq_hog.append(indx_list)
-#print(list_idx_query_per_uniq_hog)
+#     each element is not a list anymore, each element is an integer 
+#         indx_list=[i for i, x in enumerate(list_query_inferred_hog) if x == hog_unique]  # [[0], [1,2,3], ]
+#         list_idx_query_per_uniq_hog.append(indx_list)
+
+unique_num=len(list_inferred_hog_unique)
+print(unique_num)
 
 
-# In[34]:
+# In[9]:
 
 
-oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
+############ Extracting the most frequent OG  ########
+#####################################################
+
 oma_db = db.Database(oma_database_address)
 print("OMA data is parsed and its release name is :", oma_db.get_release_name())
 mostFrequent_OG_list=[]
-unique_num=len(list_inferred_hog_unique)
+
 
 for  item_idx in range(unique_num):
     
@@ -72,41 +88,42 @@ for  item_idx in range(unique_num):
     OGs_correspond_proteins = [pr.oma_group for pr in proteins_object_hog]
     mostFrequent_OG = max(set(OGs_correspond_proteins), key = OGs_correspond_proteins.count)
     mostFrequent_OG_list.append(mostFrequent_OG)
-    
-    print("For queries",[list_query_protein_name[i]  for i in list_idx_query_per_uniq_hog[item_idx]])
+
+    index_query_protein=list_idx_query_of_uniq_hog[item_idx]
+    print("For query",list_query_protein_name[index_query_protein] )
     print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins.count(mostFrequent_OG),
           "out of", len(OGs_correspond_proteins),"\n")
 
 
-# In[35]:
+# In[10]:
 
 
-query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query3.fa"
 query_protein_records = list(SeqIO.parse(query_protein, "fasta")) 
 print(len(query_protein_records))
 
 
-# In[66]:
+# In[ ]:
 
+
+########## Combine proteins of OG with queries ##################
+#################################################################
 
 seqRecords_all=[]
 for  item_idx in range(unique_num):
     mostFrequent_OG = mostFrequent_OG_list[item_idx]
-
     OG_members = oma_db.oma_group_members(mostFrequent_OG)
     proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
     seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.genome.uniprot_species_code), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
     
-    seqRecords_queries = []
-    for i in  list_idx_query_per_uniq_hog[item_idx]:
-        seqRecords_queries.append(query_protein_records[i])
-        
-    seqRecords =seqRecords_OG + seqRecords_queries
+    query_protein_record_id = list_idx_query_of_uniq_hog[item_idx]
+    seqRecords_query = query_protein_records[query_protein_record_id]
+    
+    seqRecords =seqRecords_OG + [seqRecords_query]
     print(mostFrequent_OG,len(seqRecords),len(seqRecords_OG))
     seqRecords_all.append(seqRecords)
 
 
-# In[67]:
+# In[ ]:
 
 
 ############## MSA  ##############
@@ -132,7 +149,7 @@ for  item_idx in range(unique_num):
     handle_msa_fasta.close()
 
 
-# In[68]:
+# In[ ]:
 
 
 ############## Concatante alignments  ##############
@@ -172,7 +189,7 @@ msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), i
 print(len(msa),msa.get_alignment_length()) 
 
 
-# In[63]:
+# In[ ]:
 
 
 ############## Tree inference  ###################
@@ -197,7 +214,3 @@ file1.close()
 
 
 # In[ ]:
-
-
-
-
