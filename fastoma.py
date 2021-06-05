@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[68]:
 
 
 #!/usr/bin/python3
@@ -21,14 +21,14 @@ from collections import defaultdict
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
-omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/omamer_out_Eukaryota_q2.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
-query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/HUMAN48905.fa" #v1d-omamer/query3.fa"
+omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query2b.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
+query_protein= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d-omamer/query2b.fa" #v1d-omamer/query3.fa"
 
 # oma_output_address = argv[1] 
 # oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
 
 
-# In[7]:
+# In[69]:
 
 
 ################### Parsing omamer's output  ########
@@ -46,7 +46,7 @@ for line in omamer_output_file:
         list_query_inferred_hog.append(line_split[1])
 
 
-# In[8]:
+# In[70]:
 
 
 ############# Extracting the unique HOG list  ########
@@ -68,7 +68,7 @@ unique_num=len(list_inferred_hog_unique)
 print(unique_num)
 
 
-# In[9]:
+# In[71]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -95,14 +95,20 @@ for  item_idx in range(unique_num):
           "out of", len(OGs_correspond_proteins),"\n")
 
 
-# In[10]:
+# In[72]:
 
 
 query_protein_records = list(SeqIO.parse(query_protein, "fasta")) 
 print(len(query_protein_records))
 
 
-# In[ ]:
+# In[73]:
+
+
+mostFrequent_OG_list, list_idx_query_of_uniq_hog
+
+
+# In[74]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -115,15 +121,20 @@ for  item_idx in range(unique_num):
     proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
     seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.genome.uniprot_species_code), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
     
-    query_protein_record_id = list_idx_query_of_uniq_hog[item_idx]
-    seqRecords_query = query_protein_records[query_protein_record_id]
+    #query_protein_record_id = list_idx_query_of_uniq_hog[item_idx]
+    index_query_protein=list_idx_query_of_uniq_hog[item_idx]
+    print("For query index",index_query_protein,"name",list_query_protein_name[index_query_protein] )
+    seqRecords_query = query_protein_records[index_query_protein]
     
     seqRecords =seqRecords_OG + [seqRecords_query]
-    print(mostFrequent_OG,len(seqRecords),len(seqRecords_OG))
     seqRecords_all.append(seqRecords)
+    
+    print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords),"\n")
+    
+print("number of OGs",len(seqRecords_all))
 
 
-# In[ ]:
+# In[75]:
 
 
 ############## MSA  ##############
@@ -133,7 +144,7 @@ result_maf2_all=[]
 for  item_idx in range(unique_num):
     seqRecords=seqRecords_all[item_idx]
         
-    wrapper_maf = mafft.Mafft(seqRecords)
+    wrapper_maf = mafft.Mafft(seqRecords,datatype="PROTEIN")
     result_maf1 = wrapper_maf()
     time_taken_maf = wrapper_maf.elapsed_time  # 
     print("time elapsed for multiple sequence alignment: ",time_taken_maf)
@@ -143,13 +154,13 @@ for  item_idx in range(unique_num):
 
 for  item_idx in range(unique_num):
     result_maf2=result_maf2_all[item_idx]
-    out_name_msa="out_msa_"+str(item_idx)+".txt"
+    out_name_msa=omamer_output_address+"_out_msa"+str(item_idx)+".txt"
     handle_msa_fasta = open(out_name_msa,"w")
     SeqIO.write(result_maf2, handle_msa_fasta,"fasta")
     handle_msa_fasta.close()
 
 
-# In[ ]:
+# In[76]:
 
 
 ############## Concatante alignments  ##############
@@ -186,19 +197,25 @@ for aln in alignments:
 # and build the Biopython data structures Seq, SeqRecord and MultipleSeqAlignment
 msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), id=label)
                             for (label, seq_arr) in concat_buf.items())
+
+out_name_msa=omamer_output_address+"_out_msa_concatanated.txt"
+handle_msa_fasta = open(out_name_msa,"w")
+SeqIO.write(msa, handle_msa_fasta,"fasta")
+handle_msa_fasta.close()
+    
 print(len(msa),msa.get_alignment_length()) 
 
 
-# In[ ]:
+# In[77]:
 
 
 ############## Tree inference  ###################
 ##################################################
 
-wrapper_tree=fasttree.Fasttree(msa)
+wrapper_tree=fasttree.Fasttree(msa,datatype="PROTEIN")
 result_tree1 = wrapper_tree()
 
-time_taken_tree = wrapper_tree.elapsed_time  # 
+time_taken_tree = wrapper_tree.elapsed_time 
 time_taken_tree
 
 result_tree2 = wrapper_tree.result
@@ -207,10 +224,44 @@ print(len(tree_nwk))
 
 
 
-out_name_tree="tree_01.txt"
+out_name_tree=omamer_output_address+"_tree_02.txt"
 file1 = open(out_name_tree,"w")
 file1.write(tree_nwk)
 file1.close() 
 
 
+# In[80]:
+
+
+#tree_nwk
+
+
 # In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
