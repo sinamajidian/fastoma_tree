@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[18]:
 
 
 #!/usr/bin/python3
@@ -21,10 +21,15 @@ from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from collections import defaultdict
 
+
+#  for development 
+import matplotlib.pyplot as plt
+
+
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
 omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.omamer"
-query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.fasta"
+query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.fa"
 
 # The species name of query is the name of the file; for HUMAN_q.fa will be "HUMAN_q"
 
@@ -32,7 +37,7 @@ query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/
 # oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
 
 
-# In[4]:
+# In[9]:
 
 
 ################### Parsing  query protein  ########
@@ -42,7 +47,7 @@ query_prot_records = list(SeqIO.parse(query_protein_address, "fasta"))
 print(len(query_prot_records))
 
 
-# In[ ]:
+# In[10]:
 
 
 ################### Parsing omamer's output  ########
@@ -61,7 +66,7 @@ for line in omamer_output_file:
 print("number of proteins in omamer output",len(query_hogids)) # ,query_hogids
 
 
-# In[5]:
+# In[11]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -87,7 +92,7 @@ num_query_filtr = len(query_hogids_filtr)
 print("Number of prot queries after filtering is",num_query_filtr)
 
 
-# In[5]:
+# In[14]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -96,6 +101,9 @@ print("Number of prot queries after filtering is",num_query_filtr)
 oma_db = db.Database(oma_database_address)
 print("OMA data is parsed and its release name is :", oma_db.get_release_name())
 mostFrequent_OG_list=[]
+
+OGs_correspond_proteins_num_list = []
+frq_most_frequent_og_list = []
 
 for  item_idx in range(num_query_filtr):
     
@@ -107,14 +115,21 @@ for  item_idx in range(num_query_filtr):
     OGs_correspond_proteins = [pr.oma_group for pr in proteins_object_hog]
 
     OGs_correspond_proteins_fltr= [val_og  for val_og in OGs_correspond_proteins if val_og!=0] # removing OG of 0
-    if len(OGs_correspond_proteins_fltr) >0:
+    OGs_correspond_proteins_num = len(OGs_correspond_proteins_fltr)
+    if OGs_correspond_proteins_num >0:
         mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
         mostFrequent_OG_list.append(mostFrequent_OG)
 
-        query_protein= query_prot_names_filtr[item_idx]    
+        query_protein= query_prot_names_filtr[item_idx]
+        
+        
+        # for development
+        frq_most_frequent_og = OGs_correspond_proteins_fltr.count(mostFrequent_OG)/OGs_correspond_proteins_num 
         print("For query",query_protein )
-        print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins.count(mostFrequent_OG),
-              "out of", len(OGs_correspond_proteins),"\n")
+        print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins_fltr.count(mostFrequent_OG),
+              "out of", OGs_correspond_proteins_num,"so, frq=",frq_most_frequent_og,"\n")
+        OGs_correspond_proteins_num_list.append(OGs_correspond_proteins_num)
+        frq_most_frequent_og_list.append(frq_most_frequent_og)
         
     else: # empty OGs_correspond_proteins_fltr
         mostFrequent_OG_list.append(-1)
@@ -123,13 +138,29 @@ for  item_idx in range(num_query_filtr):
         
 
 
-# In[6]:
+# In[23]:
+
+
+# for development
+
+plt.hist(frq_most_frequent_og_list) # , bins=10
+plt.show()
+plt.savefig(query_protein_address+"frq_most_frequent_og_list.png")
+
+plt.hist(OGs_correspond_proteins_num_list) # , bins=10
+plt.show()
+plt.savefig(query_protein_address+"OGs_correspond_proteins_num_list.png")
+
+
+# In[24]:
 
 
 ########## Combine proteins of OG with queries ##################
 #################################################################
 
 query_species_name = ''.join(query_protein_address.split("/")[-1].split(".")[:-1]) #'/work/fastoma/v2a/HUMAN_q.fa'
+
+seqRecords_OG_num_list = []
 
 seqRecords_all=[]
 for  item_idx in range(num_query_filtr):
@@ -148,12 +179,26 @@ for  item_idx in range(num_query_filtr):
         seqRecords =seqRecords_OG + [seqRecords_query_edited]
         seqRecords_all.append(seqRecords)
 
-        print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords),"\n")
-    
+        # for development
+        seqRecords_OG_num= len(seqRecords_OG)
+        print("length of OG",mostFrequent_OG,"was",seqRecords_OG_num,",now is",len(seqRecords),"\n")
+        seqRecords_OG_num_list.append(seqRecords_OG_num)
+        
+        
 print("number of OGs",len(seqRecords_all))
 
 
-# In[ ]:
+# In[25]:
+
+
+# for development
+
+plt.hist(seqRecords_OG_num_list) # , bins=10
+plt.show()
+plt.savefig(query_protein_address+"seqRecords_OG_num_list.png")
+
+
+# In[26]:
 
 
 ############## MSA  ##############
@@ -172,7 +217,7 @@ for  item_idx in range(len(seqRecords_all)): #range(num_query_filtr):
     result_maf2_all.append(result_maf2)
 
 
-# In[ ]:
+# In[27]:
 
 
 ############## Concatante alignments  ##############
