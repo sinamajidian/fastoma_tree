@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[18]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -21,49 +21,88 @@ from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from collections import defaultdict
 
+from os import listdir
+from os.path import isfile, join
+
 
 #  for development 
 import matplotlib.pyplot as plt
-
+#import matplotlib
+#matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
-
-omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.omamer"
-query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.fa"
-
-# The species name of query is the name of the file; for HUMAN_q.fa will be "HUMAN_q"
-
-# oma_output_address = argv[1] 
-# oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder/"
 
 
-# In[9]:
+# PANPA.fa  PANPA.hogmap
+# The species name of query is the name of the file; 
+#  argv[2] 
 
 
-################### Parsing  query protein  ########
-#####################################################
-
-query_prot_records = list(SeqIO.parse(query_protein_address, "fasta")) 
-print(len(query_prot_records))
+# In[20]:
 
 
-# In[10]:
+############### Parsing query proteome of species #######
+#########################################################
+
+project_files = listdir(project_folder)
+
+query_species_names = []
+for file in project_files:
+    if file.split(".")[-1]=="fa":
+        file_name_split = file.split(".")[:-1]
+        query_species_names.append('.'.join(file_name_split))
+
+# we may assert existence of query_species_name+".fa/hogmap"
+
+query_prot_records_species = [ ]
+for query_species_name in query_species_names:
+    query_prot_address = project_folder + query_species_name + ".fa" 
+    query_prot_records = list(SeqIO.parse(query_prot_address, "fasta")) 
+    query_prot_records_species.append(query_prot_records)
+    
+# for development
+query_species_num = len(query_species_names)
+for species_i in range(query_species_num):
+    len_prot_record_i = len( query_prot_records_species[species_i] )
+    species_name_i = query_species_names[species_i]
+    print(species_name_i,len_prot_record_i)
+    
+
+
+# In[23]:
 
 
 ################### Parsing omamer's output  ########
 #####################################################
 
-omamer_output_file = open(omamer_output_address,'r');
-query_prot_names= []
-query_hogids= []
+query_prot_names_species = []
+query_hogids_species = []
 
-for line in omamer_output_file:
-    line_strip=line.strip()
-    if not line_strip.startswith('qs'):
-        line_split= line_strip.split("\t")        
-        query_prot_names.append(line_split[0])
-        query_hogids.append(line_split[1])
-print("number of proteins in omamer output",len(query_hogids)) # ,query_hogids
+for query_species_name in query_species_names:
+    omamer_output_address = project_folder + query_species_name + ".hogmap"     
+    omamer_output_file = open(omamer_output_address,'r');
+
+    query_prot_names= []
+    query_hogids= []
+
+    for line in omamer_output_file:
+        line_strip=line.strip()
+        if not line_strip.startswith('qs'):
+            line_split= line_strip.split("\t")        
+            query_prot_names.append(line_split[0])
+            query_hogids.append(line_split[1])
+    print("number of proteins in omamer output for ",query_species_name,"is",len(query_hogids)) # ,query_hogids
+    query_prot_names_species.append(query_prot_names)
+    query_hogids_species.append(query_hogids)
+    
+query_hogids_species, query_prot_names_species
+
+
+# In[ ]:
+
+
+
 
 
 # In[11]:
@@ -138,17 +177,17 @@ for  item_idx in range(num_query_filtr):
         
 
 
-# In[23]:
+# In[31]:
 
 
 # for development
 
 plt.hist(frq_most_frequent_og_list) # , bins=10
-plt.show()
+#plt.show()
 plt.savefig(query_protein_address+"frq_most_frequent_og_list.png")
 
 plt.hist(OGs_correspond_proteins_num_list) # , bins=10
-plt.show()
+#plt.show()
 plt.savefig(query_protein_address+"OGs_correspond_proteins_num_list.png")
 
 
@@ -188,13 +227,13 @@ for  item_idx in range(num_query_filtr):
 print("number of OGs",len(seqRecords_all))
 
 
-# In[25]:
+# In[32]:
 
 
 # for development
 
 plt.hist(seqRecords_OG_num_list) # , bins=10
-plt.show()
+#plt.show()
 plt.savefig(query_protein_address+"seqRecords_OG_num_list.png")
 
 
@@ -263,7 +302,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) 
 
 
-# In[ ]:
+# In[28]:
 
 
 ############## Tree inference  ###################
@@ -285,10 +324,10 @@ file1.write(tree_nwk)
 file1.close() 
 
 
-# In[ ]:
+# In[29]:
 
 
-#tree_nwk
+tree_nwk
 
 
 # In[ ]:
