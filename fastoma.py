@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 
 #!/usr/bin/python3
@@ -23,8 +23,8 @@ from collections import defaultdict
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
-omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2a/HUMAN_q.omamer"  #v1d/omamer_out_Eukaryota.fa"  #v1f/AEGTS.omamer"
-query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2a/HUMAN_q.fa" #v1d-omamer/query3.fa"
+omamer_output_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.omamer"
+query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v1d/q2c.fasta"
 
 # The species name of query is the name of the file; for HUMAN_q.fa will be "HUMAN_q"
 
@@ -32,7 +32,7 @@ query_protein_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2a/
 # oma_database_address= argv[2]  # address  "../smajidi1/fastoma/archive/OmaServer.h5"
 
 
-# In[2]:
+# In[4]:
 
 
 ################### Parsing  query protein  ########
@@ -42,7 +42,7 @@ query_prot_records = list(SeqIO.parse(query_protein_address, "fasta"))
 print(len(query_prot_records))
 
 
-# In[3]:
+# In[ ]:
 
 
 ################### Parsing omamer's output  ########
@@ -58,10 +58,10 @@ for line in omamer_output_file:
         line_split= line_strip.split("\t")        
         query_prot_names.append(line_split[0])
         query_hogids.append(line_split[1])
-print("number of proteins in omamer output",len(query_hogids),query_hogids)
+print("number of proteins in omamer output",len(query_hogids)) # ,query_hogids
 
 
-# In[4]:
+# In[5]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -105,13 +105,22 @@ for  item_idx in range(num_query_filtr):
     proteins_id_hog = [hog_member[0] for hog_member in hog_members]              # the protein IDs of hog members
     proteins_object_hog = [db.ProteinEntry(oma_db, pr) for pr in proteins_id_hog]  # the protein IDs of hog members
     OGs_correspond_proteins = [pr.oma_group for pr in proteins_object_hog]
-    mostFrequent_OG = max(set(OGs_correspond_proteins), key = OGs_correspond_proteins.count)
-    mostFrequent_OG_list.append(mostFrequent_OG)
 
-    query_protein= query_prot_names_filtr[item_idx]    
-    print("For query",query_protein )
-    print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins.count(mostFrequent_OG),
-          "out of", len(OGs_correspond_proteins),"\n")
+    OGs_correspond_proteins_fltr= [val_og  for val_og in OGs_correspond_proteins if val_og!=0] # removing OG of 0
+    if len(OGs_correspond_proteins_fltr) >0:
+        mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
+        mostFrequent_OG_list.append(mostFrequent_OG)
+
+        query_protein= query_prot_names_filtr[item_idx]    
+        print("For query",query_protein )
+        print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins.count(mostFrequent_OG),
+              "out of", len(OGs_correspond_proteins),"\n")
+        
+    else: # empty OGs_correspond_proteins_fltr
+        mostFrequent_OG_list.append(-1)
+        
+        
+        
 
 
 # In[6]:
@@ -125,19 +134,21 @@ query_species_name = ''.join(query_protein_address.split("/")[-1].split(".")[:-1
 seqRecords_all=[]
 for  item_idx in range(num_query_filtr):
     mostFrequent_OG = mostFrequent_OG_list[item_idx]
-    OG_members = oma_db.oma_group_members(mostFrequent_OG)
-    proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
-    seqRecords_OG= [SeqRecord(Seq(pr.sequence), str(pr.genome.uniprot_species_code), '', '') for pr in proteins_object_OG ] # covnert to biopython objects
+    if mostFrequent_OG != -1:
+        OG_members = oma_db.oma_group_members(mostFrequent_OG)
+        proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
+         # covnert to biopython objects
+        seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
 
-    query_protein= query_prot_names_filtr[item_idx]    
-    print("For query index",item_idx,"name",query_protein)
-    seqRecords_query =  query_prot_records_filtr[item_idx] 
-    
-    seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
-    seqRecords =seqRecords_OG + [seqRecords_query_edited]
-    seqRecords_all.append(seqRecords)
-    
-    print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords),"\n")
+        query_protein= query_prot_names_filtr[item_idx]    
+        print("For query index",item_idx,"name",query_protein)
+        seqRecords_query =  query_prot_records_filtr[item_idx] 
+
+        seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
+        seqRecords =seqRecords_OG + [seqRecords_query_edited]
+        seqRecords_all.append(seqRecords)
+
+        print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords),"\n")
     
 print("number of OGs",len(seqRecords_all))
 
@@ -149,7 +160,7 @@ print("number of OGs",len(seqRecords_all))
 ##################################
 
 result_maf2_all=[]
-for  item_idx in range(num_query_filtr):
+for  item_idx in range(len(seqRecords_all)): #range(num_query_filtr):
     seqRecords=seqRecords_all[item_idx]
         
     wrapper_maf = mafft.Mafft(seqRecords,datatype="PROTEIN")
