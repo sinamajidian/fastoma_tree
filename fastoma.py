@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[33]:
 
 
 #!/usr/bin/python3
@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 #matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder1/"
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder/"
 
 
 # PANPA.fa  PANPA.hogmap
@@ -39,7 +39,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder
 #  argv[2] 
 
 
-# In[2]:
+# In[34]:
 
 
 ############### Parsing query proteome of species #######
@@ -70,7 +70,7 @@ for species_i in range(query_species_num):
     
 
 
-# In[3]:
+# In[35]:
 
 
 ################### Parsing omamer's output  ########
@@ -99,7 +99,7 @@ for query_species_name in query_species_names:
 query_hogids_species, query_prot_names_species
 
 
-# In[4]:
+# In[36]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -146,7 +146,7 @@ for species_i in range(query_species_num):
 
 
 
-# In[5]:
+# In[37]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -171,6 +171,8 @@ for species_i in range(query_species_num):
     OGs_correspond_proteins_num_list = []
     frq_most_frequent_og_list = []
 
+    
+    num_query_filtr = len(query_hogids_filtr)
     for  item_idx in range(num_query_filtr):
 
         hog_id= query_hogids_filtr[item_idx]
@@ -205,8 +207,6 @@ for species_i in range(query_species_num):
                 frq_most_frequent_og_list.append(-1)
                 frq_most_frequent_og_list_all.append(-1)
             
-            
-            
             #if len(frq_most_frequent_og_list_all) != len(set(frq_most_frequent_og_list_all)):
             #    print("** repeated OG",frq_most_frequent_og,query_protein)
 
@@ -219,7 +219,7 @@ for species_i in range(query_species_num):
         
 
 
-# In[6]:
+# In[38]:
 
 
 # # for development
@@ -233,7 +233,7 @@ for species_i in range(query_species_num):
 # plt.savefig(query_protein_address+"OGs_correspond_proteins_num_list.png")
 
 
-# In[23]:
+# In[43]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -244,11 +244,19 @@ for species_i in range(query_species_num):
     query_species_name = query_species_names[species_i]
     print(query_species_name)
     
+    mostFrequent_OG_list = mostFrequent_OG_list_species[species_i]
+    #OGs_correspond_proteins_num_list = OGs_correspond_proteins_num_list_species
+    #frq_most_frequent_og_list = frq_most_frequent_og_list_species
+    query_prot_names_filtr = query_prot_names_filtr_species[species_i]
+    query_prot_records_filtr = query_prot_records_filtr_species[species_i]
 
+    
+    
     seqRecords_OG_num_list = []
-
     seqRecords_all = []
-    for  item_idx in range(num_query_filtr):
+    
+    num_query_filtr = len(mostFrequent_OG_list)
+    for item_idx in range(num_query_filtr):
         mostFrequent_OG = mostFrequent_OG_list[item_idx]
         if mostFrequent_OG != -1:
             OG_members = oma_db.oma_group_members(mostFrequent_OG)
@@ -279,34 +287,7 @@ for species_i in range(query_species_num):
 print("number of OGs",len(seqRecords_all))
 
 
-# In[22]:
-
-
-
-
-
-# In[19]:
-
-
-for seqRecords_all in seqRecords_all_species:
-    for seqRecords in seqRecords_all:
-        print("****")
-        for seqRecord in seqRecords:
-            if seqRecord.id =="HUMAN":
-                print(seqRecord.id)
-                print(seqRecord.seq)
-        
-    
-    
-
-
-# In[ ]:
-
-
-
-
-
-# In[32]:
+# In[40]:
 
 
 # # for development
@@ -316,7 +297,7 @@ for seqRecords_all in seqRecords_all_species:
 # plt.savefig(query_protein_address+"seqRecords_OG_num_list.png")
 
 
-# In[8]:
+# In[41]:
 
 
 ############## MSA  ##############
@@ -346,20 +327,6 @@ for species_i in range(query_species_num):
 
         
 print(result_mafft_all_species)
-
-
-# In[40]:
-
-
-print(result_mafft_all_species)
-
-
-alignments= result_mafft_all_species
-
-[seq.id for aln in alignments for seq in aln]
-
-print()
-
 
 
 # In[42]:
