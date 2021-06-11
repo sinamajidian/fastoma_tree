@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[33]:
+# In[29]:
 
 
 #!/usr/bin/python3
@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 #matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder/"
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f1/"
 
 
 # PANPA.fa  PANPA.hogmap
@@ -39,7 +39,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder
 #  argv[2] 
 
 
-# In[34]:
+# In[30]:
 
 
 ############### Parsing query proteome of species #######
@@ -70,7 +70,7 @@ for species_i in range(query_species_num):
     
 
 
-# In[35]:
+# In[31]:
 
 
 ################### Parsing omamer's output  ########
@@ -96,10 +96,10 @@ for query_species_name in query_species_names:
     query_prot_names_species.append(query_prot_names)
     query_hogids_species.append(query_hogids)
     
-query_hogids_species, query_prot_names_species
+query_hogids_species# , query_prot_names_species
 
 
-# In[36]:
+# In[32]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -146,7 +146,7 @@ for species_i in range(query_species_num):
 
 
 
-# In[37]:
+# In[33]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -184,6 +184,7 @@ for species_i in range(query_species_num):
 
         OGs_correspond_proteins_fltr= [val_og  for val_og in OGs_correspond_proteins if val_og!=0] # removing OG of 0
         OGs_correspond_proteins_num = len(OGs_correspond_proteins_fltr)
+        #print(OGs_correspond_proteins_num)
         if OGs_correspond_proteins_num >0:
             mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
             mostFrequent_OG_list.append(mostFrequent_OG)
@@ -216,24 +217,25 @@ for species_i in range(query_species_num):
     mostFrequent_OG_list_species.append(mostFrequent_OG_list)
     OGs_correspond_proteins_num_list_species.append(OGs_correspond_proteins_num_list)
     frq_most_frequent_og_list_species.append(frq_most_frequent_og_list)
-        
+print(len(frq_most_frequent_og_list_species[0]))  
 
 
-# In[38]:
+# In[36]:
 
 
-# # for development
+# for development
 
-# plt.hist(frq_most_frequent_og_list) # , bins=10
-# #plt.show()
-# plt.savefig(query_protein_address+"frq_most_frequent_og_list.png")
+# plots are for the last species not all 
+plt.hist(frq_most_frequent_og_list) # , bins=10
+plt.show()
+plt.savefig(query_prot_address+"frq_most_frequent_og_list.png")
 
-# plt.hist(OGs_correspond_proteins_num_list) # , bins=10
-# #plt.show()
-# plt.savefig(query_protein_address+"OGs_correspond_proteins_num_list.png")
+plt.hist(OGs_correspond_proteins_num_list) # , bins=10
+plt.show()
+plt.savefig(query_prot_address+"OGs_correspond_proteins_num_list.png")
 
 
-# In[43]:
+# In[41]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -280,24 +282,24 @@ for species_i in range(query_species_num):
             # for development
             seqRecords_OG_num= len(seqRecords_OG)
             print("length of OG",mostFrequent_OG,"was",seqRecords_OG_num,",now is",len(seqRecords),"\n")
-            #seqRecords_OG_num_list.append(seqRecords_OG_num)
+            seqRecords_OG_num_list.append(seqRecords_OG_num)
             
     seqRecords_all_species.append(seqRecords_all)
         
 print("number of OGs",len(seqRecords_all))
 
 
-# In[40]:
+# In[42]:
 
 
-# # for development
+# for development
+# plots are for the last species not all 
+plt.hist(seqRecords_OG_num_list) # , bins=10
+plt.show()
+plt.savefig(query_prot_address+"seqRecords_OG_num_list.png")
 
-# plt.hist(seqRecords_OG_num_list) # , bins=10
-# #plt.show()
-# plt.savefig(query_protein_address+"seqRecords_OG_num_list.png")
 
-
-# In[41]:
+# In[ ]:
 
 
 ############## MSA  ##############
@@ -329,7 +331,7 @@ for species_i in range(query_species_num):
 print(result_mafft_all_species)
 
 
-# In[42]:
+# In[ ]:
 
 
 ############## Concatante alignments  ##############
@@ -339,12 +341,12 @@ print(result_mafft_all_species)
 
 alignments= result_mafft_all_species
 print("alignments len",len(alignments))
-print([len(aln) for aln in alignments ])
-print([len(seq) for aln in alignments for seq in aln])
+#print([len(aln) for aln in alignments ])
+#print([len(seq) for aln in alignments for seq in aln])
 
 all_labels_raw = [seq.id for aln in alignments for seq in aln]
 all_labels = set(all_labels_raw)
-print("id ",len(all_labels),len(all_labels_raw))
+print("ids: ",len(all_labels),len(all_labels_raw))
 
 # Make a dictionary to store info as we go along
 # (defaultdict is convenient -- asking for a missing key gives back an empty list)
@@ -355,7 +357,7 @@ alphabet = alignments[0]._alphabet
 
 for aln in alignments:
     length = aln.get_alignment_length()
-    print("length",length)
+    #print("length",length)
     # check if any labels are missing in the current alignment
     these_labels = set(rec.id for rec in aln)
     missing = all_labels - these_labels
@@ -370,29 +372,12 @@ for aln in alignments:
     for rec in aln:
         concat_buf[rec.id].append(str(rec.seq))
 
-
- 
-
-
-# In[37]:
-
-
-for (label, seq_arr) in concat_buf.items():
-    
-    #a=SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), id=label)
-    #print(label,len(''.join(seq_arr)),len(a))
-    if label=='HUMAN':
-        print(seq_arr)
-    
-
-
-# In[36]:
-
-
 # Stitch all the substrings together using join (most efficient way),
 # and build the Biopython data structures Seq, SeqRecord and MultipleSeqAlignment
 msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), id=label)
                             for (label, seq_arr) in concat_buf.items())
+
+#print(msa)
 
 
 # In[ ]:
@@ -434,12 +419,6 @@ out_name_tree=omamer_output_address+"_tree.txt"
 file1 = open(out_name_tree,"w")
 file1.write(tree_nwk)
 file1.close() 
-
-
-# In[ ]:
-
-
-tree_nwk
 
 
 # In[ ]:
