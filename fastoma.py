@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[25]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -39,7 +39,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2d/folder
 #  argv[2] 
 
 
-# In[26]:
+# In[2]:
 
 
 ############### Parsing query proteome of species #######
@@ -70,7 +70,7 @@ for species_i in range(query_species_num):
     
 
 
-# In[27]:
+# In[3]:
 
 
 ################### Parsing omamer's output  ########
@@ -99,7 +99,7 @@ for query_species_name in query_species_names:
 query_hogids_species, query_prot_names_species
 
 
-# In[28]:
+# In[4]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -146,7 +146,7 @@ for species_i in range(query_species_num):
 
 
 
-# In[29]:
+# In[5]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -219,7 +219,7 @@ for species_i in range(query_species_num):
         
 
 
-# In[30]:
+# In[6]:
 
 
 # # for development
@@ -233,7 +233,7 @@ for species_i in range(query_species_num):
 # plt.savefig(query_protein_address+"OGs_correspond_proteins_num_list.png")
 
 
-# In[31]:
+# In[23]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -255,23 +255,55 @@ for species_i in range(query_species_num):
             proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
              # covnert to biopython objects
             seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
-
+            species_name_in_OG = [seqRecord.id for seqRecord in  seqRecords_OG]
+            if query_species_name in species_name_in_OG:
+                print(" ERROR!  The query species name exist in the OG. In a OG, there must be one seq per species.") # if not in concatation will be error 
+            
             query_protein= query_prot_names_filtr[item_idx]    
             print("For query index",item_idx,"name",query_protein)
             seqRecords_query =  query_prot_records_filtr[item_idx] 
 
             seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
+            
+            
             seqRecords =seqRecords_OG + [seqRecords_query_edited]
             seqRecords_all.append(seqRecords)
 
             # for development
-            #seqRecords_OG_num= len(seqRecords_OG)
-            #print("length of OG",mostFrequent_OG,"was",seqRecords_OG_num,",now is",len(seqRecords),"\n")
+            seqRecords_OG_num= len(seqRecords_OG)
+            print("length of OG",mostFrequent_OG,"was",seqRecords_OG_num,",now is",len(seqRecords),"\n")
             #seqRecords_OG_num_list.append(seqRecords_OG_num)
             
     seqRecords_all_species.append(seqRecords_all)
         
 print("number of OGs",len(seqRecords_all))
+
+
+# In[22]:
+
+
+
+
+
+# In[19]:
+
+
+for seqRecords_all in seqRecords_all_species:
+    for seqRecords in seqRecords_all:
+        print("****")
+        for seqRecord in seqRecords:
+            if seqRecord.id =="HUMAN":
+                print(seqRecord.id)
+                print(seqRecord.seq)
+        
+    
+    
+
+
+# In[ ]:
+
+
+
 
 
 # In[32]:
@@ -284,44 +316,7 @@ print("number of OGs",len(seqRecords_all))
 # plt.savefig(query_protein_address+"seqRecords_OG_num_list.png")
 
 
-# In[46]:
-
-
-############## MSA  ##############
-##################################
-
-
-result_maf2_all_species = []
-for species_i in range(query_species_num):
-    query_species_name = query_species_names[species_i]
-    print(query_species_name)
-    
-    seqRecords_all = seqRecords_all_species[species_i]
-    
-
-    #result_maf2_all=[]
-    for  item_idx in range(len(seqRecords_all)): #range(num_query_filtr):
-        seqRecords=seqRecords_all[item_idx]
-
-        wrapper_maf = mafft.Mafft(seqRecords,datatype="PROTEIN")
-        result_maf1 = wrapper_maf()
-        time_taken_maf = wrapper_maf.elapsed_time  # 
-        print("time elapsed for multiple sequence alignment: ",time_taken_maf)
-
-        result_maf2 = wrapper_maf.result
-        #result_maf2_all.append(result_maf2)
-        result_maf2_all_species.append(result_maf2)
-        print(len(result_maf2),result_maf2.get_alignment_length()) # super matrix size
-        
-
-
-# In[49]:
-
-
-len(seqRecords_all[0]),len(seqRecords_all[1])
-
-
-# In[51]:
+# In[8]:
 
 
 ############## MSA  ##############
