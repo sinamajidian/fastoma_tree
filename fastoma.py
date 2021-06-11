@@ -146,7 +146,7 @@ for species_i in range(query_species_num):
 
 
 
-# In[33]:
+# In[47]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -156,6 +156,8 @@ oma_db = db.Database(oma_database_address)
 print("OMA data is parsed and its release name is :", oma_db.get_release_name())
 
 mostFrequent_OG_list_species = []
+mostFrequent_OG_all_species = []
+
 OGs_correspond_proteins_num_list_species = []
 frq_most_frequent_og_list_species = []
 
@@ -170,7 +172,6 @@ for species_i in range(query_species_num):
     mostFrequent_OG_list=[]
     OGs_correspond_proteins_num_list = []
     frq_most_frequent_og_list = []
-
     
     num_query_filtr = len(query_hogids_filtr)
     for  item_idx in range(num_query_filtr):
@@ -187,26 +188,24 @@ for species_i in range(query_species_num):
         #print(OGs_correspond_proteins_num)
         if OGs_correspond_proteins_num >0:
             mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
-            mostFrequent_OG_list.append(mostFrequent_OG)
-
-            query_protein= query_prot_names_filtr[item_idx]
-
+            
+            if mostFrequent_OG not in mostFrequent_OG_all_species:
+                mostFrequent_OG_list.append(mostFrequent_OG)
+                mostFrequent_OG_all_species.append(mostFrequent_OG)
+            else:
+                mostFrequent_OG_list.append(-1)
+                mostFrequent_OG_all_species.append(-1)
 
             # for development
+            query_protein= query_prot_names_filtr[item_idx]
             frq_most_frequent_og = OGs_correspond_proteins_fltr.count(mostFrequent_OG)/OGs_correspond_proteins_num 
             print("For query",query_protein )
             print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins_fltr.count(mostFrequent_OG),
                   "out of", OGs_correspond_proteins_num,"so, frq=",frq_most_frequent_og,"\n")
             OGs_correspond_proteins_num_list.append(OGs_correspond_proteins_num)
-            
-            
-            if  frq_most_frequent_og not in frq_most_frequent_og_list_all:
-                frq_most_frequent_og_list.append(frq_most_frequent_og)
-                frq_most_frequent_og_list_all.append(frq_most_frequent_og)
-            else:
-                
-                frq_most_frequent_og_list.append(-1)
-                frq_most_frequent_og_list_all.append(-1)
+
+            frq_most_frequent_og_list.append(frq_most_frequent_og)
+            frq_most_frequent_og_list_all.append(frq_most_frequent_og)
             
             #if len(frq_most_frequent_og_list_all) != len(set(frq_most_frequent_og_list_all)):
             #    print("** repeated OG",frq_most_frequent_og,query_protein)
@@ -220,7 +219,7 @@ for species_i in range(query_species_num):
 print(len(frq_most_frequent_og_list_species[0]))  
 
 
-# In[36]:
+# In[48]:
 
 
 # for development
@@ -228,11 +227,11 @@ print(len(frq_most_frequent_og_list_species[0]))
 # plots are for the last species not all 
 plt.hist(frq_most_frequent_og_list) # , bins=10
 plt.show()
-plt.savefig(query_prot_address+"frq_most_frequent_og_list.png")
+plt.savefig(project_folder+"_one_species_frq_most_frequent_og_list.png")
 
 plt.hist(OGs_correspond_proteins_num_list) # , bins=10
 plt.show()
-plt.savefig(query_prot_address+"OGs_correspond_proteins_num_list.png")
+plt.savefig(project_folder+"_one_species_correspond_proteins_num_list.png")
 
 
 # In[41]:
@@ -296,10 +295,10 @@ print("number of OGs",len(seqRecords_all))
 # plots are for the last species not all 
 plt.hist(seqRecords_OG_num_list) # , bins=10
 plt.show()
-plt.savefig(query_prot_address+"seqRecords_OG_num_list.png")
+plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
 
 
-# In[ ]:
+# In[43]:
 
 
 ############## MSA  ##############
@@ -331,7 +330,7 @@ for species_i in range(query_species_num):
 print(result_mafft_all_species)
 
 
-# In[ ]:
+# In[44]:
 
 
 ############## Concatante alignments  ##############
@@ -386,12 +385,12 @@ msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), i
 
 
 
-# In[ ]:
+# In[45]:
 
 
 
 
-out_name_msa=omamer_output_address+"_msa_concatanated.txt"
+out_name_msa=project_folder+"_msa_concatanated.txt"
 handle_msa_fasta = open(out_name_msa,"w")
 SeqIO.write(msa, handle_msa_fasta,"fasta")
 handle_msa_fasta.close()
@@ -399,7 +398,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) # super matrix size
 
 
-# In[ ]:
+# In[46]:
 
 
 ############## Tree inference  ###################
@@ -415,7 +414,7 @@ result_tree2 = wrapper_tree.result
 tree_nwk=str(result_tree2["tree"])
 print(len(tree_nwk))
 
-out_name_tree=omamer_output_address+"_tree.txt"
+out_name_tree=project_folder+"_tree.txt"
 file1 = open(out_name_tree,"w")
 file1.write(tree_nwk)
 file1.close() 
