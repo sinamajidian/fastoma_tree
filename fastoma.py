@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[29]:
+# In[50]:
 
 
 #!/usr/bin/python3
@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 #matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f1/"
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f3/"
 
 
 # PANPA.fa  PANPA.hogmap
@@ -39,7 +39,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f1/"
 #  argv[2] 
 
 
-# In[30]:
+# In[64]:
 
 
 ############### Parsing query proteome of species #######
@@ -70,7 +70,7 @@ for species_i in range(query_species_num):
     
 
 
-# In[31]:
+# In[65]:
 
 
 ################### Parsing omamer's output  ########
@@ -99,7 +99,7 @@ for query_species_name in query_species_names:
 query_hogids_species# , query_prot_names_species
 
 
-# In[32]:
+# In[66]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -113,6 +113,8 @@ for species_i in range(query_species_num):
     print(query_species_names[species_i])
     query_hogids =  query_hogids_species[species_i]
     query_prot_names = query_prot_names_species[species_i]
+    
+    query_prot_records  = query_prot_records_species[species_i]
     
     
     query_hogids_root = [query_hogid.split(".")[0][4:]  for query_hogid in  query_hogids ]
@@ -146,7 +148,13 @@ for species_i in range(query_species_num):
 
 
 
-# In[47]:
+# In[ ]:
+
+
+
+
+
+# In[68]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -219,7 +227,7 @@ for species_i in range(query_species_num):
 print(len(frq_most_frequent_og_list_species[0]))  
 
 
-# In[48]:
+# In[69]:
 
 
 # for development
@@ -234,7 +242,7 @@ plt.show()
 plt.savefig(project_folder+"_one_species_correspond_proteins_num_list.png")
 
 
-# In[41]:
+# In[70]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -288,7 +296,7 @@ for species_i in range(query_species_num):
 print("number of OGs",len(seqRecords_all))
 
 
-# In[42]:
+# In[71]:
 
 
 # for development
@@ -298,7 +306,7 @@ plt.show()
 plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
 
 
-# In[43]:
+# In[ ]:
 
 
 ############## MSA  ##############
@@ -330,7 +338,7 @@ for species_i in range(query_species_num):
 print(result_mafft_all_species)
 
 
-# In[44]:
+# In[ ]:
 
 
 ############## Concatante alignments  ##############
@@ -385,7 +393,7 @@ msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), i
 
 
 
-# In[45]:
+# In[ ]:
 
 
 
@@ -398,7 +406,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) # super matrix size
 
 
-# In[46]:
+# In[ ]:
 
 
 ############## Tree inference  ###################
@@ -423,7 +431,7 @@ file1.close()
 # In[ ]:
 
 
-
+tree_nwk
 
 
 # In[ ]:
