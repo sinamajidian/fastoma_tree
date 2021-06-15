@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[50]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -39,7 +39,19 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f3/"
 #  argv[2] 
 
 
-# In[64]:
+# In[2]:
+
+
+############### Parsing OMA db ####################
+###################################################
+
+oma_db = db.Database(oma_database_address)
+print("OMA data is parsed and its release name is:", oma_db.get_release_name())
+list_speices= [z.uniprot_species_code for z in oma_db.tax.genomes.values()] 
+print("There are",len(list_speices),"species in the OMA database.")
+
+
+# In[3]:
 
 
 ############### Parsing query proteome of species #######
@@ -67,10 +79,13 @@ for species_i in range(query_species_num):
     len_prot_record_i = len( query_prot_records_species[species_i] )
     species_name_i = query_species_names[species_i]
     print(species_name_i,len_prot_record_i)
+    if species_name_i in list_speices: 
+        print("the species",species_name_i," already exists in the oma database, remove it first")
+        exit()
     
 
 
-# In[65]:
+# In[4]:
 
 
 ################### Parsing omamer's output  ########
@@ -96,10 +111,10 @@ for query_species_name in query_species_names:
     query_prot_names_species.append(query_prot_names)
     query_hogids_species.append(query_hogids)
     
-query_hogids_species# , query_prot_names_species
+#query_hogids_species# , query_prot_names_species
 
 
-# In[66]:
+# In[5]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -111,27 +126,29 @@ query_prot_records_filtr_species = []
 
 for species_i in range(query_species_num):
     print(query_species_names[species_i])
+    
     query_hogids =  query_hogids_species[species_i]
     query_prot_names = query_prot_names_species[species_i]
-    
     query_prot_records  = query_prot_records_species[species_i]
     
     
-    query_hogids_root = [query_hogid.split(".")[0][4:]  for query_hogid in  query_hogids ]
-    query_hogids_root_uniqset = set(query_hogids_root)
-    query_hogids_root_np =  np.array(query_hogids_root)
+    
+    query_hogids_filtr = []
+    query_prot_names_filtr = []
+    query_prot_records_filtr = []
+    
+    for prot_i in range(len(query_hogids)):
+        
+        if not query_hogids[prot_i] in query_hogids_filtr: 
+        
+            query_hogids_filtr.append(query_hogids[prot_i])
+            query_prot_names_filtr.append(query_prot_names[prot_i])
+            query_prot_records_filtr.append(query_prot_records[prot_i])
+        else:
+            # for development
+            print("repeated hogid",query_hogids[prot_i], " for protein ",query_prot_names[prot_i])
+            # now we keep the first protein query when these are repeated
 
-    uniq_indices= []
-    for hogid_root  in query_hogids_root_uniqset:
-
-        if  sum(query_hogids_root_np==hogid_root) == 1:  # not reptead
-
-            uniq_indx = query_hogids_root.index(hogid_root)
-            uniq_indices.append(uniq_indx)
-
-    query_hogids_filtr     = [query_hogids[i] for i in uniq_indices]
-    query_prot_names_filtr    = [query_prot_names[i] for i in uniq_indices]
-    query_prot_records_filtr  = [query_prot_records[i] for i in uniq_indices]
 
     query_hogids_filtr_species.append(query_hogids_filtr)
     query_prot_names_filtr_species.append(query_prot_names_filtr)
@@ -139,174 +156,147 @@ for species_i in range(query_species_num):
 
     
     num_query_filtr = len(query_hogids_filtr)
-    print("Number of prot queries after filtering is",num_query_filtr)
+    print("Number of prot queries after filtering is",num_query_filtr,"\n")
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[68]:
+# In[35]:
 
 
 ############ Extracting the most frequent OG  ########
 #####################################################
 
-oma_db = db.Database(oma_database_address)
-print("OMA data is parsed and its release name is :", oma_db.get_release_name())
+#dict (oma_group_nr -> dict(species, [proteins]))
+#Og[555] = {homo_erectus: [blabla, blublu], yellow_bird: [P52134], brown_bear: [P2121,B53223]}
+
+OGs_queries = {}
+
+
+hog_OG_map = {}
 
 mostFrequent_OG_list_species = []
-mostFrequent_OG_all_species = []
 
-OGs_correspond_proteins_num_list_species = []
-frq_most_frequent_og_list_species = []
-
-frq_most_frequent_og_list_all = []
+frq_most_frequent_og_list_all = [] # for development
 
 for species_i in range(query_species_num):
-    print(query_species_names[species_i])
+    
+    query_species_name = query_species_names[species_i]
+    print("\n",query_species_name)
+    
     query_hogids_filtr = query_hogids_filtr_species[species_i]
     query_prot_names_filtr = query_prot_names_filtr_species[species_i]
     query_prot_records_filtr = query_prot_records_filtr_species[species_i]
     
     mostFrequent_OG_list=[]
-    OGs_correspond_proteins_num_list = []
-    frq_most_frequent_og_list = []
     
     num_query_filtr = len(query_hogids_filtr)
     for  item_idx in range(num_query_filtr):
-
+        
+        query_protein = query_prot_names_filtr[item_idx]
+        seqRecords_query =  query_prot_records_filtr[item_idx]
+        seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
+        #print(seqRecords_query_edited)
+        
         hog_id= query_hogids_filtr[item_idx]
-
-        hog_members = oma_db.member_of_hog_id(hog_id, level = None)                # members of the input hog_id as objects
-        proteins_id_hog = [hog_member[0] for hog_member in hog_members]              # the protein IDs of hog members
-        proteins_object_hog = [db.ProteinEntry(oma_db, pr) for pr in proteins_id_hog]  # the protein IDs of hog members
-        OGs_correspond_proteins = [pr.oma_group for pr in proteins_object_hog]
-
-        OGs_correspond_proteins_fltr= [val_og  for val_og in OGs_correspond_proteins if val_og!=0] # removing OG of 0
-        OGs_correspond_proteins_num = len(OGs_correspond_proteins_fltr)
-        #print(OGs_correspond_proteins_num)
-        if OGs_correspond_proteins_num >0:
-            mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
+        
+        if not hog_id in hog_OG_map:   # Caculitng  most frq OG for the new hog
             
-            if mostFrequent_OG not in mostFrequent_OG_all_species:
-                mostFrequent_OG_list.append(mostFrequent_OG)
-                mostFrequent_OG_all_species.append(mostFrequent_OG)
-            else:
-                mostFrequent_OG_list.append(-1)
-                mostFrequent_OG_all_species.append(-1)
+            hog_members = oma_db.member_of_hog_id(hog_id, level = None)                  # members of the input hog_id as objects
+            proteins_id_hog = [hog_member[0] for hog_member in hog_members]              # the protein IDs of hog members
+            proteins_object_hog = [db.ProteinEntry(oma_db, pr) for pr in proteins_id_hog]# the protein objects of hog members
+            OGs_correspond_proteins = [pr.oma_group for pr in proteins_object_hog]
 
-            # for development
-            query_protein= query_prot_names_filtr[item_idx]
-            frq_most_frequent_og = OGs_correspond_proteins_fltr.count(mostFrequent_OG)/OGs_correspond_proteins_num 
-            print("For query",query_protein )
-            print("the most Frequent_OG is:",mostFrequent_OG, "with frequency of",OGs_correspond_proteins_fltr.count(mostFrequent_OG),
-                  "out of", OGs_correspond_proteins_num,"so, frq=",frq_most_frequent_og,"\n")
-            OGs_correspond_proteins_num_list.append(OGs_correspond_proteins_num)
-
-            frq_most_frequent_og_list.append(frq_most_frequent_og)
-            frq_most_frequent_og_list_all.append(frq_most_frequent_og)
+            OGs_correspond_proteins_fltr = [val_og  for val_og in OGs_correspond_proteins if val_og!=0] # removing OG of 0 -those prts with no OG
+            OGs_correspond_proteins_num = len(OGs_correspond_proteins_fltr)
             
-            #if len(frq_most_frequent_og_list_all) != len(set(frq_most_frequent_og_list_all)):
-            #    print("** repeated OG",frq_most_frequent_og,query_protein)
+            if OGs_correspond_proteins_num >0:
+                mostFrequent_OG = max(set(OGs_correspond_proteins_fltr), key = OGs_correspond_proteins_fltr.count)
+                
+                ### for development
+                
+                frq_most_frequent_og = OGs_correspond_proteins_fltr.count(mostFrequent_OG)/OGs_correspond_proteins_num 
+                print("For query",query_protein,"Most frequent OG is:",mostFrequent_OG, "with freq of",OGs_correspond_proteins_fltr.count(mostFrequent_OG),
+                      "out of", OGs_correspond_proteins_num,"=>",round(frq_most_frequent_og,3))
+                frq_most_frequent_og_list_all.append(frq_most_frequent_og)
+                ### 
+                
+            else: # empty OGs_correspond_proteins_fltr
+                mostFrequent_OG= -1
+                
+            hog_OG_map[hog_id]=mostFrequent_OG
+                
+        else:  # hog_id is in hog_OG_map dic
+            print("using the hog-og-map")
+            mostFrequent_OG = hog_OG_map[hog_id]
+            
+        if mostFrequent_OG in OGs_queries:
+            OGs_queries_k = OGs_queries[mostFrequent_OG]
+            
+            if not query_species_name in OGs_queries_k:
+                OGs_queries_k[query_species_name] = seqRecords_query_edited
+                OGs_queries[mostFrequent_OG] = OGs_queries_k
+        else:
+            OGs_queries[mostFrequent_OG] = {query_species_name: seqRecords_query_edited} # query_protein = query_prot_names_filtr[item_idx]
+            
+ 
 
-        else: # empty OGs_correspond_proteins_fltr
-            mostFrequent_OG_list.append(-1)
 
-    mostFrequent_OG_list_species.append(mostFrequent_OG_list)
-    OGs_correspond_proteins_num_list_species.append(OGs_correspond_proteins_num_list)
-    frq_most_frequent_og_list_species.append(frq_most_frequent_og_list)
-print(len(frq_most_frequent_og_list_species[0]))  
-
-
-# In[69]:
+# In[49]:
 
 
 # for development
 
 # plots are for the last species not all 
-plt.hist(frq_most_frequent_og_list) # , bins=10
+plt.hist(frq_most_frequent_og_list_all) # , bins=10
 plt.show()
-plt.savefig(project_folder+"_one_species_frq_most_frequent_og_list.png")
-
-plt.hist(OGs_correspond_proteins_num_list) # , bins=10
-plt.show()
-plt.savefig(project_folder+"_one_species_correspond_proteins_num_list.png")
+plt.savefig(project_folder+"frq_most_frequent_og_list_all.png")
 
 
-# In[70]:
+# In[51]:
 
 
 ########## Combine proteins of OG with queries ##################
 #################################################################
 
-seqRecords_all_species = []
-for species_i in range(query_species_num):
-    query_species_name = query_species_names[species_i]
-    print(query_species_name)
+seqRecords_all = []
+for OG_q in OGs_queries.keys():  # OG found in the query
     
-    mostFrequent_OG_list = mostFrequent_OG_list_species[species_i]
-    #OGs_correspond_proteins_num_list = OGs_correspond_proteins_num_list_species
-    #frq_most_frequent_og_list = frq_most_frequent_og_list_species
-    query_prot_names_filtr = query_prot_names_filtr_species[species_i]
-    query_prot_records_filtr = query_prot_records_filtr_species[species_i]
-
-    
-    
-    seqRecords_OG_num_list = []
-    seqRecords_all = []
-    
-    num_query_filtr = len(mostFrequent_OG_list)
-    for item_idx in range(num_query_filtr):
-        mostFrequent_OG = mostFrequent_OG_list[item_idx]
-        if mostFrequent_OG != -1:
-            OG_members = oma_db.oma_group_members(mostFrequent_OG)
-            proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
-             # covnert to biopython objects
-            seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
-            species_name_in_OG = [seqRecord.id for seqRecord in  seqRecords_OG]
-            if query_species_name in species_name_in_OG:
-                print(" ERROR!  The query species name exist in the OG. In a OG, there must be one seq per species.") # if not in concatation will be error 
-            
-            query_protein= query_prot_names_filtr[item_idx]    
-            print("For query index",item_idx,"name",query_protein)
-            seqRecords_query =  query_prot_records_filtr[item_idx] 
-
-            seqRecords_query_edited = SeqRecord(Seq(str(seqRecords_query.seq)), query_species_name, '', '')
-            
-            
-            seqRecords =seqRecords_OG + [seqRecords_query_edited]
-            seqRecords_all.append(seqRecords)
-
-            # for development
-            seqRecords_OG_num= len(seqRecords_OG)
-            print("length of OG",mostFrequent_OG,"was",seqRecords_OG_num,",now is",len(seqRecords),"\n")
-            seqRecords_OG_num_list.append(seqRecords_OG_num)
-            
-    seqRecords_all_species.append(seqRecords_all)
+    dic_species_prot = OGs_queries[OG_q]
+    #print(dic_species_prot)
+     
+    seqRecords_query_edited_all = []
+    for query_species_name,seqRecords_query_edited  in dic_species_prot.items():
+        print(seqRecords_query_edited)
+        seqRecords_query_edited_all.append(seqRecords_query_edited) 
         
-print("number of OGs",len(seqRecords_all))
+    
+    mostFrequent_OG = OG_q
+    if mostFrequent_OG != -1:
+        OG_members = oma_db.oma_group_members(mostFrequent_OG)
+        proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
+         # covnert to biopython objects
+        seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
+        
+        
+        seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
+        #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries),"\n")
+        
+    seqRecords_all.append(seqRecords_OG_queries)
+    
+     
+#print("number of OGs",len(seqRecords_all),len(seqRecords_OG_queries))
 
 
-# In[71]:
+# In[53]:
 
 
-# for development
-# plots are for the last species not all 
-plt.hist(seqRecords_OG_num_list) # , bins=10
-plt.show()
-plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
+# # for development
+# # plots are for the last species not all 
+# plt.hist(seqRecords_OG_num_list) # , bins=10
+# plt.show()
+# plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
 
 
-# In[ ]:
+# In[54]:
 
 
 ############## MSA  ##############
@@ -314,31 +304,25 @@ plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
 
 
 result_mafft_all_species = []
-for species_i in range(query_species_num):
-    query_species_name = query_species_names[species_i]
-    print(query_species_name)
-    
-    seqRecords_all = seqRecords_all_species[species_i]
-    
-    for item_idx in range(len(seqRecords_all)): #range(num_query_filtr):
-        
-        seqRecords=seqRecords_all[item_idx]
-        wrapper_mafft = mafft.Mafft(seqRecords,datatype="PROTEIN")
-        run_mafft = wrapper_mafft()
-        time_taken_mafft = wrapper_mafft.elapsed_time
+for seqRecords_OG_queries in seqRecords_all:
+    print(len(seqRecords_OG_queries))
+    #print("MSA on progress for og ", ?)
+    wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
+    run_mafft = wrapper_mafft()
+    time_taken_mafft = wrapper_mafft.elapsed_time
 
-        result_mafft = wrapper_mafft.result   
-        time_taken_mafft2 = wrapper_mafft.elapsed_time
-        print("time elapsed for MSA: ",time_taken_mafft2)
+    result_mafft = wrapper_mafft.result   
+    time_taken_mafft2 = wrapper_mafft.elapsed_time
+    print("time elapsed for MSA: ",time_taken_mafft2)
 
-        result_mafft_all_species.append(result_mafft)
-        print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
+    result_mafft_all_species.append(result_mafft)
+    print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
 
         
 print(result_mafft_all_species)
 
 
-# In[ ]:
+# In[55]:
 
 
 ############## Concatante alignments  ##############
@@ -387,13 +371,7 @@ msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), i
 #print(msa)
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+# In[56]:
 
 
 
@@ -406,7 +384,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) # super matrix size
 
 
-# In[ ]:
+# In[57]:
 
 
 ############## Tree inference  ###################
@@ -428,10 +406,22 @@ file1.write(tree_nwk)
 file1.close() 
 
 
-# In[ ]:
+# In[58]:
 
 
 tree_nwk
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
