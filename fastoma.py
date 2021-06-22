@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[22]:
 
 
 #!/usr/bin/python3
@@ -39,7 +39,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f3/"
 #  argv[2] 
 
 
-# In[2]:
+# In[23]:
 
 
 ############### Parsing OMA db ####################
@@ -51,7 +51,38 @@ list_speices= [z.uniprot_species_code for z in oma_db.tax.genomes.values()]
 print("There are",len(list_speices),"species in the OMA database.")
 
 
-# In[3]:
+# In[24]:
+
+
+
+# from pyoma.browser.hoghelper import build_hog_to_og_map
+# hog_og_map = {hog_id: og_count[0] for hog_id, og_count in build_hog_to_og_map(oma_db)}
+
+# print("HOG-OG map is extracted")
+
+# hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
+# with open(hog_og_map_address, 'w') as file_map:
+#     print(hog_og_map, file=file_map)
+    
+# file_map.close()
+# print("HOG-OG map is written in the file.")
+
+
+# In[25]:
+
+
+hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
+
+import ast
+file = open(hog_og_map_address, "r")
+contents = file.read()
+hog_OG_map = ast.literal_eval(contents)
+file.close()
+
+print("The hog-og map is read from file with the length of ", len(hog_og_map))
+
+
+# In[26]:
 
 
 ############### Parsing query proteome of species #######
@@ -85,7 +116,7 @@ for species_i in range(query_species_num):
     
 
 
-# In[4]:
+# In[27]:
 
 
 ################### Parsing omamer's output  ########
@@ -114,7 +145,7 @@ for query_species_name in query_species_names:
 #query_hogids_species# , query_prot_names_species
 
 
-# In[5]:
+# In[28]:
 
 
 ###### Extracting unique HOG list and corresponding query proteins ########
@@ -159,7 +190,7 @@ for species_i in range(query_species_num):
     print("Number of prot queries after filtering is",num_query_filtr,"\n")
 
 
-# In[35]:
+# In[32]:
 
 
 ############ Extracting the most frequent OG  ########
@@ -170,14 +201,13 @@ for species_i in range(query_species_num):
 
 OGs_queries = {}
 
-
-hog_OG_map = {}
+# hog_OG_map = {}
 
 mostFrequent_OG_list_species = []
 
 frq_most_frequent_og_list_all = [] # for development
 
-for species_i in range(query_species_num):
+for species_i in  range(query_species_num):
     
     query_species_name = query_species_names[species_i]
     print("\n",query_species_name)
@@ -189,7 +219,7 @@ for species_i in range(query_species_num):
     mostFrequent_OG_list=[]
     
     num_query_filtr = len(query_hogids_filtr)
-    for  item_idx in range(num_query_filtr):
+    for  item_idx in range(num_query_filtr): #
         
         query_protein = query_prot_names_filtr[item_idx]
         seqRecords_query =  query_prot_records_filtr[item_idx]
@@ -199,7 +229,7 @@ for species_i in range(query_species_num):
         hog_id= query_hogids_filtr[item_idx]
         
         if not hog_id in hog_OG_map:   # Caculitng  most frq OG for the new hog
-            
+            print("hog id is not in the map",hog_id)
             hog_members = oma_db.member_of_hog_id(hog_id, level = None)                  # members of the input hog_id as objects
             proteins_id_hog = [hog_member[0] for hog_member in hog_members]              # the protein IDs of hog members
             proteins_object_hog = [db.ProteinEntry(oma_db, pr) for pr in proteins_id_hog]# the protein objects of hog members
@@ -225,7 +255,7 @@ for species_i in range(query_species_num):
             hog_OG_map[hog_id]=mostFrequent_OG
                 
         else:  # hog_id is in hog_OG_map dic
-            print("using the hog-og-map")
+            #print("using the hog-og-map")
             mostFrequent_OG = hog_OG_map[hog_id]
             
         if mostFrequent_OG in OGs_queries:
@@ -237,21 +267,10 @@ for species_i in range(query_species_num):
         else:
             OGs_queries[mostFrequent_OG] = {query_species_name: seqRecords_query_edited} # query_protein = query_prot_names_filtr[item_idx]
             
- 
+print("done1") 
 
 
-# In[49]:
-
-
-# for development
-
-# plots are for the last species not all 
-plt.hist(frq_most_frequent_og_list_all) # , bins=10
-plt.show()
-plt.savefig(project_folder+"frq_most_frequent_og_list_all.png")
-
-
-# In[51]:
+# In[35]:
 
 
 ########## Combine proteins of OG with queries ##################
@@ -265,7 +284,7 @@ for OG_q in OGs_queries.keys():  # OG found in the query
      
     seqRecords_query_edited_all = []
     for query_species_name,seqRecords_query_edited  in dic_species_prot.items():
-        print(seqRecords_query_edited)
+        #print(seqRecords_query_edited)
         seqRecords_query_edited_all.append(seqRecords_query_edited) 
         
     
@@ -278,7 +297,7 @@ for OG_q in OGs_queries.keys():  # OG found in the query
         
         
         seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
-        #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries),"\n")
+        print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
         
     seqRecords_all.append(seqRecords_OG_queries)
     
@@ -286,7 +305,13 @@ for OG_q in OGs_queries.keys():  # OG found in the query
 #print("number of OGs",len(seqRecords_all),len(seqRecords_OG_queries))
 
 
-# In[53]:
+# In[ ]:
+
+
+
+
+
+# In[37]:
 
 
 # # for development
@@ -296,22 +321,25 @@ for OG_q in OGs_queries.keys():  # OG found in the query
 # plt.savefig(project_folder+"_one_species_seqRecords_OG_num_list.png")
 
 
-# In[54]:
+# In[ ]:
 
 
 ############## MSA  ##############
 ##################################
 
-
+print("number of OGs",len(seqRecords_all),"\n")
 result_mafft_all_species = []
-for seqRecords_OG_queries in seqRecords_all:
+
+for seqRecords_OG_queries in seqRecords_all: #[seqRecords_all[1]]:
     print(len(seqRecords_OG_queries))
     #print("MSA on progress for og ", ?)
+    
     wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
-    run_mafft = wrapper_mafft()
+    
+    run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
     time_taken_mafft = wrapper_mafft.elapsed_time
 
-    result_mafft = wrapper_mafft.result   
+    result_mafft = wrapper_mafft.result 
     time_taken_mafft2 = wrapper_mafft.elapsed_time
     print("time elapsed for MSA: ",time_taken_mafft2)
 
@@ -319,10 +347,10 @@ for seqRecords_OG_queries in seqRecords_all:
     print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
 
         
-print(result_mafft_all_species)
+print(len(result_mafft_all_species))
 
 
-# In[55]:
+# In[ ]:
 
 
 ############## Concatante alignments  ##############
@@ -371,7 +399,7 @@ msa = MultipleSeqAlignment(SeqRecord(Seq(''.join(seq_arr), alphabet=alphabet), i
 #print(msa)
 
 
-# In[56]:
+# In[ ]:
 
 
 
@@ -384,7 +412,7 @@ handle_msa_fasta.close()
 print(len(msa),msa.get_alignment_length()) # super matrix size
 
 
-# In[57]:
+# In[ ]:
 
 
 ############## Tree inference  ###################
@@ -406,26 +434,10 @@ file1.write(tree_nwk)
 file1.close() 
 
 
-# In[58]:
+# In[ ]:
 
 
 tree_nwk
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
 
 
 
