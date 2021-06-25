@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -23,6 +23,10 @@ from collections import defaultdict
 
 from os import listdir
 from os.path import isfile, join
+from datetime import datetime
+
+import concurrent.futures
+
 
 import ast
 #  for development 
@@ -31,7 +35,9 @@ import matplotlib.pyplot as plt
 #matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v2e/f3/"
+
+#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/old1/v2e/f3/"
+project_folder = argv[1]
 hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
 
 
@@ -40,7 +46,7 @@ hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archiv
 #  argv[2] 
 
 
-# In[ ]:
+# In[2]:
 
 
 
@@ -50,16 +56,19 @@ def parse_oma(oma_database_address, hog_og_map_address):
     ###################################################
 
     oma_db = db.Database(oma_database_address)
-    print("OMA data is parsed and its release name is:", oma_db.get_release_name())
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- OMA data is parsed and its release name is:", oma_db.get_release_name())
     list_speices= [z.uniprot_species_code for z in oma_db.tax.genomes.values()] 
-    print("There are",len(list_speices),"species in the OMA database.")
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- There are",len(list_speices),"species in the OMA database.")
 
     file = open(hog_og_map_address, "r")
     contents = file.read()
     hog_OG_map = ast.literal_eval(contents)
     file.close()
-
-    print("The hog-og map is read from file with the length of ", len(hog_OG_map))
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- The hog-og map is read from file with the length of ", len(hog_OG_map))
     
     
     return (oma_db, hog_OG_map, list_speices)
@@ -90,9 +99,10 @@ def parse_proteome(project_folder, list_speices):
     for species_i in range(query_species_num):
         len_prot_record_i = len( query_prot_records_species[species_i] )
         species_name_i = query_species_names[species_i]
-        print(species_name_i,len_prot_record_i)
+        #print(species_name_i,len_prot_record_i)
         if species_name_i in list_speices: 
-            print("the species",species_name_i," already exists in the oma database, remove it first")
+            current_time = now.strftime("%H:%M:%S")
+            print(current_time,"- the species",species_name_i," already exists in the oma database, remove it first")
             exit()
 
     return (query_species_names, query_prot_records_species)
@@ -120,7 +130,7 @@ def parse_hogmap_omamer(project_folder , query_species_names):
                 line_split= line_strip.split("\t")        
                 query_prot_names.append(line_split[0])
                 query_hogids.append(line_split[1])
-        print("number of proteins in omamer output for ",query_species_name,"is",len(query_hogids)) # ,query_hogids
+        #print("number of proteins in omamer output for ",query_species_name,"is",len(query_hogids)) # ,query_hogids
         query_prot_names_species.append(query_prot_names)
         query_hogids_species.append(query_hogids)    
     
@@ -136,7 +146,7 @@ def parse_hogmap_omamer(project_folder , query_species_names):
 
 
 
-# In[ ]:
+# In[3]:
 
 
 
@@ -154,7 +164,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
     query_species_num = len(query_species_names) 
     
     for species_i in range(query_species_num):
-        print(query_species_names[species_i])
+        #print(query_species_names[species_i])
 
         query_hogids =  query_hogids_species[species_i]
         query_prot_names = query_prot_names_species[species_i]
@@ -186,7 +196,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
 
 
         num_query_filtr = len(query_hogids_filtr)
-        print("Number of prot queries after filtering is",num_query_filtr,"\n")
+        #print("Number of prot queries after filtering is",num_query_filtr,"\n")
 
     
 
@@ -201,7 +211,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
 
 
 
-# In[ ]:
+# In[4]:
 
 
 
@@ -218,7 +228,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
 # print("HOG-OG map is written in the file.")
 
 
-# In[ ]:
+# In[5]:
 
 
 
@@ -242,7 +252,7 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
     for species_i in  range(query_species_num):
 
         query_species_name = query_species_names[species_i]
-        print("\n",query_species_name)
+        #print("\n",query_species_name)
 
         query_hogids_filtr = query_hogids_filtr_species[species_i]
         query_prot_names_filtr = query_prot_names_filtr_species[species_i]
@@ -276,8 +286,8 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
                     OGs_queries[mostFrequent_OG] = OGs_queries_k
             else:
                 OGs_queries[mostFrequent_OG] = {query_species_name: seqRecords_query_edited} # query_protein = query_prot_names_filtr[item_idx]
-
-    print("done1") 
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Needed HOH-OG map is extracted from the map file.") 
     
     return OGs_queries
     
@@ -289,7 +299,7 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
 
 
 
-# In[ ]:
+# In[6]:
 
 
 
@@ -318,52 +328,83 @@ def combine_OG_query(OGs_queries, oma_db):
             seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
 
             seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
-            print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
+            current_time = datetime.now().strftime("%H:%M:%S")
+            #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
+            print(current_time, " - Combining an OG with length of ",len(seqRecords_OG),"\t with a query is just finished.")
 
         seqRecords_all.append(seqRecords_OG_queries)
 
-    
-    #print("number of OGs",len(seqRecords_all),len(seqRecords_OG_queries))
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print("\n", current_time, "- Combining queries with OG is finished! number of OGs",len(seqRecords_all),len(seqRecords_OG_queries))
     return(seqRecords_all)
 
 
-# In[ ]:
+# In[7]:
 
 
 
-def run_msa(seqRecords_all):
+def run_msa_OG(seqRecords_OG_queries):
     ############## MSA  ##############
     ##################################
+    #current_time = datetime.now().strftime("%H:%M:%S")
+    #print(current_time, "- working on new OG with length of ",len(seqRecords_OG_queries))
 
-    print("number of OGs",len(seqRecords_all),"\n")
-    result_mafft_all_species = []
+    wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
 
-    for seqRecords_OG_queries in seqRecords_all: #[seqRecords_all[1]]:
-        print(len(seqRecords_OG_queries))
-        #print("MSA on progress for og ", ?)
+    run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
+    time_taken_mafft = wrapper_mafft.elapsed_time
 
-        wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
+    result_mafft = wrapper_mafft.result 
+    time_taken_mafft2 = wrapper_mafft.elapsed_time
+    
+    current_time = datetime.now().strftime("%H:%M:%S")
+    #print(current_time,"- time elapsed for MSA: ",time_taken_mafft2)
+    print(current_time,"- MSA for an OG is just finished: ",time_taken_mafft2)
 
-        run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
-        time_taken_mafft = wrapper_mafft.elapsed_time
-
-        result_mafft = wrapper_mafft.result 
-        time_taken_mafft2 = wrapper_mafft.elapsed_time
-        print("time elapsed for MSA: ",time_taken_mafft2)
-
-        result_mafft_all_species.append(result_mafft)
-        print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
+    return(result_mafft)
+   
 
 
-    print(len(result_mafft_all_species))
-    return(result_mafft_all_species)
+
+
+# In[8]:
+
+
+
+# def run_msa(seqRecords_all):
+#     ############## MSA  ##############
+#     ##################################
+
+#     print("number of OGs",len(seqRecords_all),"\n")
+#     result_mafft_all_species = []
+
+#     for seqRecords_OG_queries in seqRecords_all: #[seqRecords_all[1]]:
+#         print(len(seqRecords_OG_queries))
+#         #print("MSA on progress for og ", ?)
+
+#         wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
+
+#         run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
+#         time_taken_mafft = wrapper_mafft.elapsed_time
+
+#         result_mafft = wrapper_mafft.result 
+#         time_taken_mafft2 = wrapper_mafft.elapsed_time
+#         print("time elapsed for MSA: ",time_taken_mafft2)
+
+#         result_mafft_all_species.append(result_mafft)
+#         print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
+
+
+#     print(len(result_mafft_all_species))
+#     return(result_mafft_all_species)
    
     
 
     
 
 
-# In[ ]:
+# In[9]:
 
 
 
@@ -374,7 +415,8 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     #alignments= result_maf2_all
 
     alignments= result_mafft_all_species
-    print("alignments len",len(alignments))
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- alignments len",len(alignments))
     #print([len(aln) for aln in alignments ])
     #print([len(seq) for aln in alignments for seq in aln])
 
@@ -417,15 +459,16 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     handle_msa_fasta = open(out_name_msa,"w")
     SeqIO.write(msa, handle_msa_fasta,"fasta")
     handle_msa_fasta.close()
-
-    print(len(msa),msa.get_alignment_length()) # super matrix size
+    
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- ", len(msa),msa.get_alignment_length()) # super matrix size
     
     return msa
     
     
 
 
-# In[ ]:
+# In[10]:
 
 
 
@@ -441,7 +484,8 @@ def draw_tree(msa, project_folder):
 
     result_tree2 = wrapper_tree.result
     tree_nwk=str(result_tree2["tree"])
-    print(len(tree_nwk))
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- ",len(tree_nwk))
 
     out_name_tree=project_folder+"_tree.txt"
     file1 = open(out_name_tree,"w")
@@ -462,7 +506,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[ ]:
+# In[11]:
 
 
 
@@ -484,28 +528,35 @@ if __name__ == "__main__":
     
     seqRecords_all = combine_OG_query(OGs_queries, oma_db)
     
+
     
+
+    result_mafft_all_species=[]
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor: # ProcessPoolExecutor(max_workers=5)
+        for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
+            #print(len(seqRecords_OG_queries), len(output_values))
+            result_mafft_all_species.append(output_values)
     
 #     result_mafft_all_species = run_msa(seqRecords_all)
 #     print("all msa are done")
-#     msa= concatante_alignments(result_mafft_all_species, project_folder)
-#     print("all msa are concatanated")
+    msa= concatante_alignments(result_mafft_all_species, project_folder)
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- all msa are concatanated")
 
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Tree inference is started")
     
 #     tree_nwk = draw_tree(msa, project_folder)
 #     tree_nwk
+#    print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
 
 
-# In[ ]:
+# In[12]:
 
 
-
-
-
-# In[ ]:
-
-
-
+datetime.now().strftime("%H:%M:%S")
 
 
 # In[ ]:
