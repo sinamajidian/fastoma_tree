@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[8]:
+# In[ ]:
 
 
 #!/usr/bin/python3
@@ -40,7 +40,7 @@ hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archiv
 #  argv[2] 
 
 
-# In[9]:
+# In[ ]:
 
 
 
@@ -136,7 +136,7 @@ def parse_hogmap_omamer(project_folder , query_species_names):
 
 
 
-# In[10]:
+# In[ ]:
 
 
 
@@ -201,7 +201,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
 
 
 
-# In[11]:
+# In[ ]:
 
 
 
@@ -218,7 +218,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
 # print("HOG-OG map is written in the file.")
 
 
-# In[12]:
+# In[ ]:
 
 
 
@@ -289,7 +289,7 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
 
 
 
-# In[13]:
+# In[ ]:
 
 
 
@@ -331,59 +331,6 @@ def combine_OG_query(OGs_queries, oma_db):
 
 
 
-
-
-# In[ ]:
-
-
-
-
-
-# In[14]:
-
-
-
-
-
-if __name__ == "__main__":
-
-
-
-
-
-    (oma_db, hog_OG_map, list_speices) = parse_oma(oma_database_address, hog_og_map_address)
-
-
-    (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
-    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names )
-
-
-
-
-    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species)
-
-    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
-
-    seqRecords_all = combine_OG_query(OGs_queries, oma_db)
-    
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[15]:
-
-
-
 def run_msa(seqRecords_all):
     ############## MSA  ##############
     ##################################
@@ -413,8 +360,10 @@ def run_msa(seqRecords_all):
    
     
 
+    
 
-# In[20]:
+
+# In[ ]:
 
 
 
@@ -480,40 +429,6 @@ def concatante_alignments(result_mafft_all_species, project_folder):
 
 
 
-
-
-# In[ ]:
-
-
-
-
-
-# In[17]:
-
-
-result_mafft_all_species = run_msa(seqRecords_all)
-
-print("all msa are done")
-
-
-# In[21]:
-
-
-msa= concatante_alignments(result_mafft_all_species, project_folder)
-
-print("all msa are concatanated")
-
-
-# In[ ]:
-
-
-
-
-
-# In[22]:
-
-
-
 def draw_tree(msa, project_folder):
     ############## Tree inference  ###################
     ##################################################
@@ -535,12 +450,50 @@ def draw_tree(msa, project_folder):
     return tree_nwk
 
 
-# In[23]:
+# In[ ]:
 
 
 
-tree_nwk = draw_tree(msa, project_folder)
-tree_nwk
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+if __name__ == "__main__":
+    (oma_db, hog_OG_map, list_speices) = parse_oma(oma_database_address, hog_og_map_address)
+
+
+    (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
+    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names )
+
+
+    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species)
+
+    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
+
+    #seqRecords_all = combine_OG_query(OGs_queries, oma_db)
+    
+    seqRecords_all = combine_OG_query(OGs_queries, oma_db)
+    
+    
+    
+#     result_mafft_all_species = run_msa(seqRecords_all)
+#     print("all msa are done")
+#     msa= concatante_alignments(result_mafft_all_species, project_folder)
+#     print("all msa are concatanated")
+
+    
+#     tree_nwk = draw_tree(msa, project_folder)
+#     tree_nwk
 
 
 # In[ ]:
