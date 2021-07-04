@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[17]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -47,7 +47,7 @@ hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archiv
 #  argv[2] 
 
 
-# In[7]:
+# In[2]:
 
 
 
@@ -141,7 +141,7 @@ def parse_hogmap_omamer(project_folder , query_species_names):
     
 
 
-# In[8]:
+# In[3]:
 
 
 
@@ -200,7 +200,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
     
 
 
-# In[9]:
+# In[4]:
 
 
 
@@ -265,7 +265,7 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
     
 
 
-# In[10]:
+# In[5]:
 
 
 
@@ -307,7 +307,7 @@ def combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG):
     return(seqRecords_all)
 
 
-# In[11]:
+# In[6]:
 
 
 
@@ -338,7 +338,7 @@ def run_msa_OG(seqRecords_OG_queries):
    
 
 
-# In[12]:
+# In[7]:
 
 
 
@@ -402,7 +402,7 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     
 
 
-# In[13]:
+# In[8]:
 
 
 
@@ -441,7 +441,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[18]:
+# In[ ]:
 
 
 
@@ -476,7 +476,7 @@ if __name__ == "__main__":
 
 
 
-# In[16]:
+# In[ ]:
 
 
 
@@ -516,36 +516,14 @@ print(current_time, "- Tree inference is started")
 # In[ ]:
 
 
-tree_nwk = draw_tree(msa, project_folder)
-
-
-print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
-
-
-# In[ ]:
-
-
-tree_nwk
+#     tree_nwk = draw_tree(msa, project_folder)
+#     print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
 
 
 # In[ ]:
 
 
-#        mafft_wrapper = Mafft(records)
-#         mafft_wrapper.options.options['--localpair'].set_value(True)
-#         mafft_wrapper.options.options['--maxiterate'].set_value(1000)
-#         alignment = mafft_wrapper()
-#         # write alignment to file
-#         align_output = open(align_filename, "w")
-#         AlignIO.write(alignment, align_output, "phylip-relaxed")
-#         align_output.close()
-        
-#         # set up tree inferance
-#         raxml_wrapper = Raxml(alignment)
-#         raxml_wrapper.options.options['-m'].set_value('PROTCATWAG')
-#         raxml_wrapper.options.options['-f'].set_value('a')
-#         raxml_wrapper.options.options['-x'].set_value(1234)
-#         raxml_wrapper.options.options['-N'].set_value(100)
+#     tree_nwk
 
 
 # In[ ]:
