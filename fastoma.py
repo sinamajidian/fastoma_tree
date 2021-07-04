@@ -30,17 +30,18 @@ import concurrent.futures
 
 import ast
 #  for development 
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
-#import matplotlib
-#matplotlib.use('Agg')
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
 # should end in /
 
 # very small
-# project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
+#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
 
 #project_folder = argv[1]
 hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
@@ -406,7 +407,7 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     
 
 
-# In[134]:
+# In[8]:
 
 
 
@@ -457,7 +458,7 @@ def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
 
 
 
-# In[137]:
+# In[11]:
 
 
 
@@ -482,6 +483,9 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
             keep_cols.append(col_i)
 
 
+    plt.hist(ratio_col_all,bins=100) # , bins=10
+    #plt.show()
+    plt.savefig("./__ratio_col.pdf")
 
     current_time = datetime.now().strftime("%H:%M:%S")
     print(current_time, "- Columns indecis extracted. Out of ", length_record,"columns,",len(keep_cols),"is remained.") 
@@ -515,7 +519,7 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
 
 
 
-# In[9]:
+# In[12]:
 
 
 
@@ -548,7 +552,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[10]:
+# In[13]:
 
 
 
@@ -584,7 +588,7 @@ if __name__ == "__main__":
 
 
 
-# In[11]:
+# In[ ]:
 
 
 
@@ -606,7 +610,7 @@ print(current_time, "- all msa are concatanated")
 
 
 
-# In[20]:
+# In[ ]:
 
 
 #     current_time = datetime.now().strftime("%H:%M:%S")
@@ -620,19 +624,19 @@ print(current_time, "- all msa are concatanated")
 #     tree_nwk
 
 
-# In[139]:
+# In[ ]:
 
 
 #msa_origin =list(msa)[:]
 
 
-# In[146]:
+# In[ ]:
 
 
 #     #add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
 #     add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
 #     msa = AlignIO.read(add,"fasta")
-#     print(len(msa_a),len(msa_a[0]))
+#     print(len(msa),len(msa[0]))
 
 
 # In[ ]:
@@ -644,23 +648,42 @@ print(current_time, "- all msa are concatanated")
 # In[ ]:
 
 
+##    Instead of running MSA and using concatatntion. you could used pre_calculated concat msa
+
+#     project_folder =  "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" # _msa_concatanated_hogmapX.txt"
+#     project_files = listdir(project_folder)
+#     query_species_names = []
+#     for file in project_files:
+#         if file.split(".")[-1]=="fa":
+#             file_name_split = file.split(".")[:-1]
+#             query_species_names.append('.'.join(file_name_split))
 
 
+#     msa_input = project_folder+"_msa_concatanated.txt"
+#     msa = AlignIO.read(msa_input,"fasta")
+#     print("finish reading file",len(msa),len(msa[0]))
 
-# In[147]:
+
+# In[ ]:
 
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Row-wise filtering of MSA is started.") 
    
-tresh_ratio_gap_row = 0.0201
+tresh_ratio_gap_row = 0.02
 msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Column-wise filtering of MSA is started.") 
 
-tresh_ratio_gap_col = 0.00101
+tresh_ratio_gap_col = 0.1
 msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
+
+
+
+# In[ ]:
+
+
 
 
 
