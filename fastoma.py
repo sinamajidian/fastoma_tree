@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[17]:
 
 
 #!/usr/bin/python3
@@ -36,8 +36,9 @@ import matplotlib.pyplot as plt
 
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
-#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/old1/v2e/f3/"
-project_folder = argv[1]
+# should end in /
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f6_1kA/" # ST/f5_100S/" # old1/v2e/f5/" # v3a/ST/"     #"
+#project_folder = argv[1]
 hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
 
 
@@ -46,7 +47,7 @@ hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archiv
 #  argv[2] 
 
 
-# In[2]:
+# In[7]:
 
 
 
@@ -140,13 +141,7 @@ def parse_hogmap_omamer(project_folder , query_species_names):
     
 
 
-# In[ ]:
-
-
-
-
-
-# In[3]:
+# In[8]:
 
 
 
@@ -205,30 +200,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
     
 
 
-# In[ ]:
-
-
-
-
-
-# In[4]:
-
-
-
-# from pyoma.browser.hoghelper import build_hog_to_og_map
-# hog_og_map = {hog_id: og_count[0] for hog_id, og_count in build_hog_to_og_map(oma_db)}
-
-# print("HOG-OG map is extracted")
-
-# hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
-# with open(hog_og_map_address, 'w') as file_map:
-#     print(hog_og_map, file=file_map)
-    
-# file_map.close()
-# print("HOG-OG map is written in the file.")
-
-
-# In[5]:
+# In[9]:
 
 
 
@@ -293,54 +265,49 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
     
 
 
-# In[ ]:
+# In[10]:
 
 
 
-
-
-# In[6]:
-
-
-
-def combine_OG_query(OGs_queries, oma_db):
+def combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG):
     
     ########## Combine proteins of OG with queries ##################
     #################################################################
-
+    
+    seqRecords_OG_queries = []
     seqRecords_all = []
     for OG_q in OGs_queries.keys():  # OG found in the query
 
         dic_species_prot = OGs_queries[OG_q]
-        #print(dic_species_prot)
+        if len(dic_species_prot) >threshold_least_query_sepecies_in_OG:
 
-        seqRecords_query_edited_all = []
-        for query_species_name,seqRecords_query_edited  in dic_species_prot.items():
-            #print(seqRecords_query_edited)
-            seqRecords_query_edited_all.append(seqRecords_query_edited) 
+            seqRecords_query_edited_all = []
+            for query_species_name,seqRecords_query_edited  in dic_species_prot.items():
+                #print(seqRecords_query_edited)
+                seqRecords_query_edited_all.append(seqRecords_query_edited) 
 
 
-        mostFrequent_OG = OG_q
-        if mostFrequent_OG != -1:
-            OG_members = oma_db.oma_group_members(mostFrequent_OG)
-            proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
-             # covnert to biopython objects
-            seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
+            mostFrequent_OG = OG_q
+            if mostFrequent_OG != -1:
+                OG_members = oma_db.oma_group_members(mostFrequent_OG)
+                proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
+                 # covnert to biopython objects
+                seqRecords_OG=[SeqRecord(Seq(pr.sequence),str(pr.genome.uniprot_species_code),'','') for pr in proteins_object_OG]
 
-            seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
-            current_time = datetime.now().strftime("%H:%M:%S")
-            #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
-            print(current_time, " - Combining an OG with length of ",len(seqRecords_OG),"\t with a query is just finished.")
+                seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
+                current_time = datetime.now().strftime("%H:%M:%S")
+                #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
+                print(current_time, " - Combining an OG with length of ",len(seqRecords_OG),"\t with a query is just finished.")
 
-        seqRecords_all.append(seqRecords_OG_queries)
+            seqRecords_all.append(seqRecords_OG_queries)
 
 
     current_time = datetime.now().strftime("%H:%M:%S")
-    print("\n", current_time, "- Combining queries with OG is finished! number of OGs",len(seqRecords_all),len(seqRecords_OG_queries))
+    print("\n", current_time, "- Combining queries with OG is finished! number of OGs",len(seqRecords_all)) # 
     return(seqRecords_all)
 
 
-# In[7]:
+# In[11]:
 
 
 
@@ -350,7 +317,12 @@ def run_msa_OG(seqRecords_OG_queries):
     #current_time = datetime.now().strftime("%H:%M:%S")
     #print(current_time, "- working on new OG with length of ",len(seqRecords_OG_queries))
 
-    wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
+    wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN") 
+    # MAfft error: Alphabet 'U' is unknown. -> add --anysymbol argument needed to define in the sourse code
+    # workaround sed "s/U/X/g"
+    
+    wrapper_mafft.options.options['--retree'].set_value(1)
+
 
     run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
     time_taken_mafft = wrapper_mafft.elapsed_time
@@ -366,45 +338,7 @@ def run_msa_OG(seqRecords_OG_queries):
    
 
 
-
-
-# In[8]:
-
-
-
-# def run_msa(seqRecords_all):
-#     ############## MSA  ##############
-#     ##################################
-
-#     print("number of OGs",len(seqRecords_all),"\n")
-#     result_mafft_all_species = []
-
-#     for seqRecords_OG_queries in seqRecords_all: #[seqRecords_all[1]]:
-#         print(len(seqRecords_OG_queries))
-#         #print("MSA on progress for og ", ?)
-
-#         wrapper_mafft = mafft.Mafft(seqRecords_OG_queries,datatype="PROTEIN")
-
-#         run_mafft = wrapper_mafft() # it's wrapper  storing the result  and time 
-#         time_taken_mafft = wrapper_mafft.elapsed_time
-
-#         result_mafft = wrapper_mafft.result 
-#         time_taken_mafft2 = wrapper_mafft.elapsed_time
-#         print("time elapsed for MSA: ",time_taken_mafft2)
-
-#         result_mafft_all_species.append(result_mafft)
-#         print(len(result_mafft),result_mafft.get_alignment_length()) # matrix size
-
-
-#     print(len(result_mafft_all_species))
-#     return(result_mafft_all_species)
-   
-    
-
-    
-
-
-# In[9]:
+# In[12]:
 
 
 
@@ -468,7 +402,7 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     
 
 
-# In[10]:
+# In[13]:
 
 
 
@@ -477,6 +411,7 @@ def draw_tree(msa, project_folder):
     ##################################################
 
     wrapper_tree=fasttree.Fasttree(msa,datatype="PROTEIN")
+    wrapper_tree.options.options['-fastest']    
     result_tree1 = wrapper_tree()
 
     time_taken_tree = wrapper_tree.elapsed_time 
@@ -506,7 +441,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[11]:
+# In[18]:
 
 
 
@@ -526,37 +461,91 @@ if __name__ == "__main__":
 
     #seqRecords_all = combine_OG_query(OGs_queries, oma_db)
     
-    seqRecords_all = combine_OG_query(OGs_queries, oma_db)
+    threshold_least_query_sepecies_in_OG = 15
+    seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG)
+    #combine_OG_query(OGs_queries, oma_db)
+    
+    num_OGs= len(seqRecords_all)
+    
     
 
-    
 
-    result_mafft_all_species=[]
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
-    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor: # ProcessPoolExecutor(max_workers=5)
-        for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
-            #print(len(seqRecords_OG_queries), len(output_values))
-            result_mafft_all_species.append(output_values)
-    
+# In[ ]:
+
+
+
+
+
+# In[16]:
+
+
+
+iterotr_OGs = 0 
+
+result_mafft_all_species=[]
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
+with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor: # ProcessPoolExecutor(max_workers=5)
+    for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
+        #print(len(seqRecords_OG_queries), len(output_values))
+        result_mafft_all_species.append(output_values)
+        #iterotr_OGs +=1
+        #current_time = datetime.now().strftime("%H:%M:%S")
+        #print("\n", current_time, "- It was the",iterotr_OGs, "-th MSA out of ",num_OGs, "MSAs.") # 
+
 #     result_mafft_all_species = run_msa(seqRecords_all)
 #     print("all msa are done")
-    msa= concatante_alignments(result_mafft_all_species, project_folder)
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- all msa are concatanated")
+msa= concatante_alignments(result_mafft_all_species, project_folder)
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- all msa are concatanated")
 
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Tree inference is started")
-    
-#     tree_nwk = draw_tree(msa, project_folder)
-#     tree_nwk
-#    print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Tree inference is started")
 
 
-# In[12]:
+#concurrent.futures.as_completed(executor)
+  
 
 
-datetime.now().strftime("%H:%M:%S")
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+tree_nwk = draw_tree(msa, project_folder)
+
+
+print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
+
+
+# In[ ]:
+
+
+tree_nwk
+
+
+# In[ ]:
+
+
+#        mafft_wrapper = Mafft(records)
+#         mafft_wrapper.options.options['--localpair'].set_value(True)
+#         mafft_wrapper.options.options['--maxiterate'].set_value(1000)
+#         alignment = mafft_wrapper()
+#         # write alignment to file
+#         align_output = open(align_filename, "w")
+#         AlignIO.write(alignment, align_output, "phylip-relaxed")
+#         align_output.close()
+        
+#         # set up tree inferance
+#         raxml_wrapper = Raxml(alignment)
+#         raxml_wrapper.options.options['-m'].set_value('PROTCATWAG')
+#         raxml_wrapper.options.options['-f'].set_value('a')
+#         raxml_wrapper.options.options['-x'].set_value(1234)
+#         raxml_wrapper.options.options['-N'].set_value(100)
 
 
 # In[ ]:
