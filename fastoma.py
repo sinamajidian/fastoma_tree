@@ -37,7 +37,11 @@ import matplotlib.pyplot as plt
 oma_database_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/OmaServer.h5"
 
 # should end in /
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f6_1kA/" # ST/f5_100S/" # old1/v2e/f5/" # v3a/ST/"     #"
+
+# very small
+# project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
+
 #project_folder = argv[1]
 hog_og_map_address = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/hog_og_map.dic"
 
@@ -402,7 +406,116 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     
 
 
-# In[8]:
+# In[134]:
+
+
+
+
+def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
+
+    
+    msa_filtered_row = [] # msa_fltr
+    ratio_records=[]
+    for record in msa:
+        species_name = record.id
+        seq = record.seq
+        seqLen = len(record)
+        
+        gap_count=seq.count("-") + seq.count("?") + seq.count(".") +seq.count("~")
+                
+        ratio_record_nongap= 1-gap_count/seqLen
+        ratio_records.append(round(ratio_record_nongap,3))
+
+        if ratio_record_nongap > tresh_ratio_gap_row:
+            msa_filtered_row.append(record)
+        elif species_name in query_species_names : 
+            msa_filtered_row.append(record)
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(current_time, "- Many row-wise gap for query",species_name,"with a ratio of",ratio_record) 
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+
+    print(current_time, "- Row-wise filtering of MSA is finished.") 
+    print(current_time, "- Out of ",len(msa),"species,",len(msa_filtered_row),"species (row of msa) remained.")
+
+
+    out_name_msa=project_folder+"_msa_concatanated_filtered_row_"+str(tresh_ratio_gap_row)+".txt"
+    handle_msa_fasta = open(out_name_msa,"w")
+    SeqIO.write(msa_filtered_row, handle_msa_fasta,"fasta")
+    handle_msa_fasta.close()
+    
+    print(current_time, "- MSA Row-wise filtered stored in file.") # super matrix size
+    
+    
+    return msa_filtered_row
+    
+
+
+# In[ ]:
+
+
+
+
+
+# In[137]:
+
+
+
+def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
+
+    ratio_col_all = []
+
+    length_record= len(msa_filtered_row[1])
+    num_records = len(msa_filtered_row)
+
+
+    keep_cols = []
+    for col_i in range(length_record):  # inspired by https://github.com/andreas-wilm/compbio-utils/blob/master/prune_aln_cols.py 
+
+        col_values = [record.seq[col_i] for record in msa_filtered_row]
+
+        gap_count=col_values.count("-") + col_values.count("?") + col_values.count(".") +col_values.count("~")
+
+        ratio_col_nongap = 1- gap_count/num_records
+        ratio_col_all.append(ratio_col_nongap)
+        if ratio_col_nongap  > tresh_ratio_gap_col:
+            keep_cols.append(col_i)
+
+
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Columns indecis extracted. Out of ", length_record,"columns,",len(keep_cols),"is remained.") 
+
+    msa_filtered_row_col = []
+
+    for record in msa_filtered_row :
+        record_seq = str(record.seq)
+
+        record_seq_edited  = ''.join([record_seq[i] for i in keep_cols  ])
+        record_edited= SeqRecord(Seq(record_seq_edited), record.id, '', '')
+        msa_filtered_row_col.append(record_edited)                         
+
+
+    
+    out_name_msa=project_folder+"_msa_concatanated_filtered_row_col_"+str(tresh_ratio_gap_col)+".txt"
+    handle_msa_fasta = open(out_name_msa,"w")
+    SeqIO.write(msa_filtered_row_col, handle_msa_fasta,"fasta")
+    handle_msa_fasta.close()
+    
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Column-wise filtering of MSA is finished",len(msa_filtered_row_col),len(msa_filtered_row_col[0])) 
+       
+    #msa_filtered_row_col = MultipleSeqAlignment(msa_filtered_row_col)
+    return msa_filtered_row_col
+
+
+# In[ ]:
+
+
+
+
+
+# In[9]:
 
 
 
@@ -435,13 +548,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+# In[10]:
 
 
 
@@ -465,6 +572,7 @@ if __name__ == "__main__":
     seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG)
     #combine_OG_query(OGs_queries, oma_db)
     
+    
     num_OGs= len(seqRecords_all)
     
     
@@ -476,7 +584,7 @@ if __name__ == "__main__":
 
 
 
-# In[ ]:
+# In[11]:
 
 
 
@@ -485,45 +593,75 @@ iterotr_OGs = 0
 result_mafft_all_species=[]
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
-with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor: # ProcessPoolExecutor(max_workers=5)
-    for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
-        #print(len(seqRecords_OG_queries), len(output_values))
-        result_mafft_all_species.append(output_values)
-        #iterotr_OGs +=1
-        #current_time = datetime.now().strftime("%H:%M:%S")
-        #print("\n", current_time, "- It was the",iterotr_OGs, "-th MSA out of ",num_OGs, "MSAs.") # 
 
-#     result_mafft_all_species = run_msa(seqRecords_all)
-#     print("all msa are done")
+number_max_workers = 1
+
+with concurrent.futures.ProcessPoolExecutor(max_workers=number_max_workers) as executor: 
+    for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
+        result_mafft_all_species.append(output_values)
+
 msa= concatante_alignments(result_mafft_all_species, project_folder)
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- all msa are concatanated")
 
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- Tree inference is started")
 
 
-#concurrent.futures.as_completed(executor)
-  
+# In[20]:
 
 
-# In[ ]:
+#     current_time = datetime.now().strftime("%H:%M:%S")
+#     print(current_time, "- Tree inference is started")
 
-
-
-
-
-# In[ ]:
-
-
+#     concurrent.futures.as_completed(executor)
 #     tree_nwk = draw_tree(msa, project_folder)
+    
+    
 #     print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
+#     tree_nwk
+
+
+# In[139]:
+
+
+#msa_origin =list(msa)[:]
+
+
+# In[146]:
+
+
+#     #add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
+#     add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
+#     msa = AlignIO.read(add,"fasta")
+#     print(len(msa_a),len(msa_a[0]))
 
 
 # In[ ]:
 
 
-#     tree_nwk
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[147]:
+
+
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Row-wise filtering of MSA is started.") 
+   
+tresh_ratio_gap_row = 0.0201
+msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
+
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Column-wise filtering of MSA is started.") 
+
+tresh_ratio_gap_col = 0.00101
+msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
+
 
 
 # In[ ]:
