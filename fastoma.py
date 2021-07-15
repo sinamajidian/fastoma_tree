@@ -46,9 +46,9 @@ bird6ID_address = datasets_address+"info.tsv"
 
 
 # very small
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
+#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
 
-#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
 
 #project_folder = argv[1]
 
@@ -114,7 +114,7 @@ def parse_proteome(project_folder, list_speices):
         species_name_i = query_species_names[species_i]
         #print(species_name_i,len_prot_record_i)
         if species_name_i in list_speices: 
-            current_time = now.strftime("%H:%M:%S")
+            current_time = datetime.now().strftime("%H:%M:%S")
             print(current_time,"- the species",species_name_i," already exists in the oma database, remove it first")
             exit()
 
@@ -146,15 +146,24 @@ def parse_hogmap_omamer(project_folder , query_species_names):
         #print("number of proteins in omamer output for ",query_species_name,"is",len(query_hogids)) # ,query_hogids
         query_prot_names_species.append(query_prot_names)
         query_hogids_species.append(query_hogids)    
+        
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- There are ",len(query_prot_names_species)," in project folder.")
+    print(current_time,"- The first species",query_prot_names[0]," contains ",len(query_hogids_species[0])," proteins.")
+
     
     return (query_prot_names_species, query_hogids_species)
     
     
-    
 
-def extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species):
+
+
+def extract_unique_hog_pure(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species):
     ###### Extracting unique HOG list and corresponding query proteins ########
     ###########################################################################
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- Extracting proteins mapped only once on a HOG is started")
 
     query_hogids_filtr_species = []
     query_prot_names_filtr_species = []
@@ -164,44 +173,117 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
     
     query_species_num = len(query_species_names) 
     
+    dic_hogs_list=[]  # a list of dictinaries 
+
+
     for species_i in range(query_species_num):
-        #print(query_species_names[species_i])
 
         query_hogids =  query_hogids_species[species_i]
         query_prot_names = query_prot_names_species[species_i]
         query_prot_records  = query_prot_records_species[species_i]
+        
+        dic_hogs = {}
+        for prot_i in range(len(query_hogids)):
+            query_hogid      = query_hogids[prot_i]
+            query_prot_name  = query_prot_names[prot_i]
+            query_prot_record= query_prot_records[prot_i]
+            if  query_hogid  not in  dic_hogs:
+                dic_hogs[query_hogid]=[(query_prot_name,query_prot_record)]
+            else:
+                repeated_hogid_num += 1 
+                dic_hogs[query_hogid].append((query_prot_name,query_prot_record))
+        dic_hogs_list.append(dic_hogs)
 
-
-
-        query_hogids_filtr = []
+        
+    for dic_hogs in dic_hogs_list: # each species
+        
         query_prot_names_filtr = []
         query_prot_records_filtr = []
 
-        for prot_i in range(len(query_hogids)):
-
-            if not query_hogids[prot_i] in query_hogids_filtr: 
-
-                query_hogids_filtr.append(query_hogids[prot_i])
-                query_prot_names_filtr.append(query_prot_names[prot_i])
-                query_prot_records_filtr.append(query_prot_records[prot_i])
-            else:
-                repeated_hogid_num += 1 
-                # for development
-                #print("repeated hogid",query_hogids[prot_i], " for protein ",query_prot_names[prot_i])
-                # now we keep the first protein query when these are repeated
-
+        hogid_list = list(dic_hogs.keys())
+        for hogid in hogid_list:
+            list_query_prot = dic_hogs[hogid]
+            if len(list_query_prot)>1:
+                del dic_hogs[hogid]
+        #here dic_hogs is updated and  dic_hogs_list  is also updated.
+        
+        #print(len(hogid_list),len(dic_hogs))
+        #for key, value in d.items():
+        query_hogids_filtr = []
+        query_prot_names_filtr = []
+        query_prot_records_filtr = []        
+        #query_hogids_filtr=list(dic_hogs.keys())
+        for hogid, tuple_value  in dic_hogs.items():
+            query_hogids_filtr.append(hogid)
+            query_prot_names_filtr.append(tuple_value[0][0])
+            query_prot_records_filtr.append(tuple_value[0][1])
+        
+        
+        
 
         query_hogids_filtr_species.append(query_hogids_filtr)
         query_prot_names_filtr_species.append(query_prot_names_filtr)
-        query_prot_records_filtr_species.append(query_prot_records_filtr)
-
-
-        num_query_filtr = len(query_hogids_filtr)
-        #print("Number of prot queries after filtering is",num_query_filtr,"\n")
-
+        query_prot_records_filtr_species.append(query_prot_records_filtr)        
+    
+    current_time  = datetime.now().strftime("%H:%M:%S")
+    print(current_time,"- Extracting proteins mapped only once on a HOG is finished")
+    num_all_hogs=np.sum([len(dic_hogs) for dic_hogs in dic_hogs_list])
+    print(current_time,"- For ",len(dic_hogs_list)," species, we keep only",num_all_hogs,"HOGs.")
     
 
     return (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species )
+  
+
+# def extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species):
+#     ###### Extracting unique HOG list and corresponding query proteins ########
+#     ###########################################################################
+
+#     query_hogids_filtr_species = []
+#     query_prot_names_filtr_species = []
+#     query_prot_records_filtr_species = []
+
+#     repeated_hogid_num = 0
+    
+#     query_species_num = len(query_species_names) 
+    
+#     for species_i in range(query_species_num):
+#         #print(query_species_names[species_i])
+
+#         query_hogids =  query_hogids_species[species_i]
+#         query_prot_names = query_prot_names_species[species_i]
+#         query_prot_records  = query_prot_records_species[species_i]
+
+
+
+#         query_hogids_filtr = []
+#         query_prot_names_filtr = []
+#         query_prot_records_filtr = []
+
+#         for prot_i in range(len(query_hogids)):
+
+#             if not query_hogids[prot_i] in query_hogids_filtr: 
+
+#                 query_hogids_filtr.append(query_hogids[prot_i])
+#                 query_prot_names_filtr.append(query_prot_names[prot_i])
+#                 query_prot_records_filtr.append(query_prot_records[prot_i])
+#             else:
+#                 repeated_hogid_num += 1 
+#                 # for development
+#                 #print("repeated hogid",query_hogids[prot_i], " for protein ",query_prot_names[prot_i])
+#                 # now we keep the first protein query when these are repeated
+
+
+#         query_hogids_filtr_species.append(query_hogids_filtr)
+#         query_prot_names_filtr_species.append(query_prot_names_filtr)
+#         query_prot_records_filtr_species.append(query_prot_records_filtr)
+
+
+#         num_query_filtr = len(query_hogids_filtr)
+#         #print("Number of prot queries after filtering is",num_query_filtr,"\n")
+
+    
+
+#     return (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species )
     
     
 
@@ -265,13 +347,13 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
             else:
                 OGs_queries[mostFrequent_OG] = {query_species_name: seqRecords_query_edited} # query_protein = query_prot_names_filtr[item_idx]
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Needed HOH-OG map is extracted from the map file.") 
+    print(current_time, "- Needed HOH-OG map ",len(OGs_queries),"are extracted from the map file.") 
     
     return OGs_queries
     
 
 
-# In[15]:
+# In[4]:
 
 
 
@@ -303,9 +385,9 @@ def combine_OG_query(OGs_queries, oma_db, threshold_least_query_sepecies_in_OG,p
                 seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
                 current_time = datetime.now().strftime("%H:%M:%S")
                 #print("length of OG",mostFrequent_OG,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
-                print(current_time, " - Combining an OG with length of ",len(seqRecords_OG),"\t with a query is just finished.")
+                print(current_time, " - Combining an OG with length of ",len(seqRecords_OG),"\t with a query ",len(seqRecords_query_edited_all)," is just finished.")
 
-            seqRecords_all.append(seqRecords_OG_queries)
+                seqRecords_all.append(seqRecords_OG_queries)
 
 
     current_time = datetime.now().strftime("%H:%M:%S")
@@ -615,37 +697,66 @@ if __name__ == "__main__":
 
 
     (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
-    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names )
-
-
-    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species)
-
-    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
 
 
 # In[10]:
 
 
+(query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names)
 
-threshold_least_query_sepecies_in_OG = 13
+
+(query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog_pure(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species) # #extract_unique_hog old function
+
+OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[11]:
+
+
+
+threshold_least_query_sepecies_in_OG = 15
 seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG,project_folder)
 
 #num_OGs= len(seqRecords_all)
 
 
-number_max_workers = 1
-result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder)
-
-
-ogs_keep_number = 10
-result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
+# In[ ]:
 
 
 
-msa= concatante_alignments(result_mafft_all_species_filtr, project_folder)
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- all msa are concatanated")
 
+
+# In[13]:
+
+
+
+
+    number_max_workers = 1
+    result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder)
+
+    
+    ogs_keep_number = 2
+    result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
+
+
+    
+    msa= concatante_alignments(result_mafft_all_species_filtr, project_folder)
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- all msa are concatanated")
+
+    
 
 
 # In[ ]:
@@ -665,36 +776,25 @@ print(current_time, "- all msa are concatanated")
 
 
 
-# In[11]:
+# In[ ]:
+
+
+
+
+
+# In[15]:
 
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Row-wise filtering of MSA is started.") 
    
-tresh_ratio_gap_row = 0.02
+tresh_ratio_gap_row = 0.3
 msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Column-wise filtering of MSA is started.") 
 
-tresh_ratio_gap_col = 0.1
-msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
-
-
-
-# In[13]:
-
-
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- Row-wise filtering of MSA is started.") 
-   
-tresh_ratio_gap_row = 0.7
-msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
-
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- Column-wise filtering of MSA is started.") 
-
-tresh_ratio_gap_col = 0.7
+tresh_ratio_gap_col = 0.3
 msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
 
 
@@ -801,7 +901,7 @@ msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
     msa_filtered_row_col= msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,project_folder)
 
 
-# In[16]:
+# In[ ]:
 
 
 
