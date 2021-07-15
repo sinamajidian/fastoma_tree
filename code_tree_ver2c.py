@@ -8,20 +8,7 @@
 
 import numpy as np
 from sys import argv
-# import pyoma.browser.db as db
-# import pyoma.browser.models as mod
-# import zoo.wrappers.aligners.mafft as mafft
-# import zoo.wrappers.treebuilders.fasttree as fasttree
-# from Bio import SeqIO
-# from Bio.SeqRecord import SeqRecord
-# from Bio import AlignIO
-# from Bio.Align import MultipleSeqAlignment
-# from Bio.Alphabet import IUPAC, SingleLetterAlphabet
-# from Bio.Seq import Seq, UnknownSeq
-# from Bio.SeqRecord import SeqRecord
-# from collections import defaultdict
-# from os import listdir
-# from os.path import isfile, join
+
 from datetime import datetime
 #import concurrent.futures
 
@@ -116,6 +103,8 @@ print(len(taxonID_omaID),len(taxonID_bird6ID),len(taxonID_map))
 #taxonID_list= list(taxonID_map.keys())
 
 
+# # Reading FastOMA bird  tree
+
 # In[5]:
 
 
@@ -185,11 +174,7 @@ print(len(bird_tree_raw),len(bird_tree))
 #bird_tree.write()
 
 
-# In[ ]:
-
-
-
-
+# # Reading  NCBI tree
 
 # In[10]:
 
@@ -223,55 +208,40 @@ print(len(ncbi_sub_tree))
 
 
 
-# In[12]:
+# In[ ]:
 
 
-#bird_tree.write()
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[36]:
+
+
+ncbi_sub_tree.write() 
+
+
+# In[ ]:
+
+
+
 
 
 # In[13]:
 
 
-#ncbi_sub_tree.write() 
+#bird_tree.write()
 
 
-# In[ ]:
+# # compareing fastOMA bird and NCBI
+# 
 
-
-
-
-
-# In[14]:
-
-
-out = bird_tree.robinson_foulds(ncbi_sub_tree,unrooted_trees=True)  # , expand_polytomies = True
-
-##  grep "min_comparison" /work/FAC/FBM/DBC/cdessim2/default/smajidi1/software/miniconda3/lib/python3.8/site-packages/ete3/coretype/tree.py
-
-(rf, max_parts, common_attrs, edges1, edges2, discard_t1, discard_t2)=out 
-# print(out[0],out[1])
-# print(len(list(out[2])),len(list(out[3])),len(list(out[4])),out[5],out[6])
-print("Len of common_attrs",len(common_attrs),", len edges1",len(edges1),", len edges2",len(edges2))
-
-e2_1=edges2 - edges1
-print("Partitions in tr1 no in tr2:", len(e2_1)) # order not sure  http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#robinson-foulds-distance
-e1_2=edges1 - edges2
-print("Partitions in tr1 no in tr2:", len(e1_2))
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[17]:
+# In[41]:
 
 
 bird_tree2=bird_tree
@@ -279,11 +249,7 @@ bird_tree2.set_outgroup("XENLA")
 
 #bird_tree2.rerootatedge(edge_XENLA)
 
-
-# In[ ]:
-
-
-out = bird_tree2.robinson_foulds(ncbi_sub_tree, expand_polytomies = True,polytomy_size_limit=20)  #  ,unrooted_trees=True # , expand_polytomies = True
+out = bird_tree2.robinson_foulds(ncbi_sub_tree) # , expand_polytomies = True  #,polytomy_size_limit=20  ,unrooted_trees=True # , expand_polytomies = True
 
 ##  grep "min_comparison" /work/FAC/FBM/DBC/cdessim2/default/smajidi1/software/miniconda3/lib/python3.8/site-packages/ete3/coretype/tree.py
 
@@ -295,9 +261,230 @@ print("RF distance is %s over a total of %s" %(rf, max_parts))
 print("Len of common_attrs",len(common_attrs),", len edges1",len(edges1),", len edges2",len(edges2))
 
 e2_1=edges2 - edges1
-print("Partitions in ncbi_sub_tre no in bird_tree2:", len(e2_1)) # order not sure  http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#robinson-foulds-distance
+print("Partitions in ncbi no in fastOMA:", len(e2_1)) # order not sure  http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#robinson-foulds-distance
 e1_2=edges1 - edges2
-print("Partitions in bird_tree2 no in ncbi_sub_tre:", len(e1_2))
+print("Partitions in fastOMA no in ncbi:", len(e1_2))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# # Reading bird paper tree
+
+# In[26]:
+
+
+bird_paper_tree_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/bird_paper_tree.txt"
+bird_paper_tree_raw= ete3.Tree(bird_paper_tree_address, format=1)
+#len(bird_paper_tree_raw)
+
+
+bird_paper_tree_leaves=[]
+for node in bird_paper_tree_raw.traverse(strategy="postorder"):
+    if node.is_leaf() : # why ?
+        bird_paper_tree_leaves.append(node.name)
+print(len(bird_paper_tree_leaves))
+bird_paper_tree_leaves[:3]
+
+
+
+# In[27]:
+
+
+
+bird_SCINAME_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/"+"SCINAME_all_pure_under.txt"
+
+def read_bird_SCINAME(bird_SCINAME_address):
+    
+    bird_SCINAME_file = open(bird_SCINAME_address,'r')
+    bird_SCINAME_list = []
+    
+    for line in bird_SCINAME_file:
+        line_strip = line.strip()
+        bird_SCINAME_list.append(line_strip)
+        
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- The bird science name  for ",len(bird_SCINAME_list),"records have read.") 
+    return bird_SCINAME_list
+
+
+bird_SCINAME_list = read_bird_SCINAME(bird_SCINAME_address)
+
+
+# In[28]:
+
+
+#bird_paper_tree_raw.prune(bird_SCINAME_list)
+
+notin_paper_tree= []
+for i in bird_SCINAME_list:
+    if i not in bird_paper_tree_leaves: 
+        notin_paper_tree.append(i)
+print(notin_paper_tree)
+#notin_paper_tree=["Cercotrichas_coryphaeus","Corvus_cornix","Eolophus_roseicapillus","Nannopterum_auritus","Nannopterum_brasilianus","Nannopterum_harrisi","Urile_pelagicus"]
+
+
+# In[29]:
+
+
+
+bird_SCINAME_list_filt=[i for i in bird_SCINAME_list if i not in notin_paper_tree]
+print(len(bird_SCINAME_list),len(bird_SCINAME_list_filt) )
+    
+
+
+# In[30]:
+
+
+bird_paper_tree= ete3.Tree(bird_paper_tree_address, format=1)
+
+bird_paper_tree.prune(bird_SCINAME_list_filt)
+len(bird_paper_tree)
+
+
+# In[33]:
+
+
+bird_paper_tree_nodes =[]
+
+
+for node in bird_paper_tree.traverse(strategy="postorder"):
+    node.name2 = node.name
+    if node.is_leaf() : # why ? and int(node.name) in taxonID_map
+        
+        node_name = node.name
+        node_name_split= node_name.split('_')
+        six_letter_name= ''.join([i[:3].upper() for i in node_name_split])
+        if len(six_letter_name)<5:
+            print(node_name)
+        else:
+            node.name= six_letter_name
+            #print(six_letter_name)
+            bird_paper_tree_nodes.append(six_letter_name)
+
+len(bird_paper_tree_nodes)
+
+
+# In[35]:
+
+
+bird_paper_tree.write()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+# compareing bird paper and NCBI
+
+
+# In[ ]:
+
+
+
+
+
+# In[40]:
+
+
+
+out = bird_paper_tree.robinson_foulds(ncbi_sub_tree) # , expand_polytomies = True  #,polytomy_size_limit=20  ,unrooted_trees=True # , expand_polytomies = True
+
+
+(rf, max_parts, common_attrs, edges1, edges2, discard_t1, discard_t2)=out 
+# print(out[0],out[1])
+# print(len(list(out[2])),len(list(out[3])),len(list(out[4])),out[5],out[6])
+print("RF distance is %s over a total of %s" %(rf, max_parts))
+
+#print("Len of common_attrs",len(common_attrs),", len edges1",len(edges1),", len edges2",len(edges2))
+
+e2_1=edges2 - edges1
+print("Partitions in ncbi not in bird_paper:", len(e2_1)) # order not sure  http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#robinson-foulds-distance
+e1_2=edges1 - edges2
+print("Partitions in bird_paper not in ncbi:", len(e1_2))
+
+
+# In[ ]:
+
+
+
+
+
+# In[43]:
+
+
+
+
+out = bird_paper_tree.robinson_foulds(bird_tree2) # , expand_polytomies = True  #,polytomy_size_limit=20  ,unrooted_trees=True # , expand_polytomies = True
+
+
+(rf, max_parts, common_attrs, edges1, edges2, discard_t1, discard_t2)=out 
+# print(out[0],out[1])
+# print(len(list(out[2])),len(list(out[3])),len(list(out[4])),out[5],out[6])
+print("RF distance is %s over a total of %s" %(rf, max_parts))
+
+#print("Len of common_attrs",len(common_attrs),", len edges1",len(edges1),", len edges2",len(edges2))
+
+e2_1=edges2 - edges1
+print("Partitions in fastOMA not in bird_paper:", len(e2_1)) # order not sure  http://etetoolkit.org/docs/latest/tutorial/tutorial_trees.html#robinson-foulds-distance
+e1_2=edges1 - edges2
+print("Partitions in bird_paper not in fastOMA:", len(e1_2))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
@@ -486,6 +673,150 @@ edges1
 
 
 edges2
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+bird_tree_leaves_omaID_bird6ID_uniq_set=set(bird_tree_leaves_omaID_bird6ID_uniq)
+bird_paper_tree_nodes_set=set(bird_paper_tree_nodes)
+
+mine_bird_paper= list(bird_paper_tree_nodes_set.intersection(bird_tree_leaves_omaID_bird6ID_uniq_set))
+print(len(bird_tree_leaves_omaID_bird6ID_uniq),len(mine_bird_paper))
+
+
+
+# In[ ]:
+
+
+bird_paper_tree=bird_paper_tree_raw
+
+bird_paper_tree.prune(mine_bird_paper)
+
+print(len(bird_paper_tree_raw),len(bird_paper_tree))
+
+
+# In[ ]:
+
+
+nodes=["sss","sss","f"]
+
+
+# In[ ]:
+
+
+name2node = dict([ [n, None] for n in nodes if type(n) is str])
+
+
+# In[ ]:
+
+
+name2node
+
+
+# In[ ]:
+
+
+len(bird_paper_tree_nodes),len(set(bird_paper_tree_nodes))
+
+
+# In[ ]:
+
+
+for i in list(set(bird_paper_tree_nodes)):
+    if bird_paper_tree_nodes.count(i)>3:
+        a=1#print(i)
+
+
+# In[ ]:
+
+
+
+
+len(bird_paper_tree_nodes_raw),len(set(bird_paper_tree_nodes_raw))
+
+
+# In[ ]:
+
+
+
+for i in bird_paper_tree_nodes_raw:
+    node_name_split= i.split('_')
+    six_letter_name= ''.join([i[:3].upper() for i in node_name_split])
+    if six_letter_name=="CHLFLA" :
+        print(i)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+bird_paper_tree.write()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
