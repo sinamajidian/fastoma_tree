@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 
 #!/usr/bin/python3
@@ -21,6 +21,8 @@ from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from collections import defaultdict
 
+import pickle
+    
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime
@@ -37,21 +39,15 @@ import matplotlib.pyplot as plt
 
 
 datasets_address= "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/archive/"
-
-
-
 oma_database_address = datasets_address + "OmaServer.h5"
 hog_og_map_address = datasets_address + "hog_og_map.dic"
-
-
 omaID_address = datasets_address+"oma-species.txt"
 bird6ID_address = datasets_address+"info.tsv"
 
 
-# should end in /
-
 # very small
 project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
+
 #project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
 
 #project_folder = argv[1]
@@ -63,7 +59,7 @@ project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_
 
 
 
-# In[ ]:
+# In[2]:
 
 
 
@@ -210,13 +206,7 @@ def extract_unique_hog(query_species_names,query_hogids_species, query_prot_name
     
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+# In[3]:
 
 
 
@@ -281,11 +271,11 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
     
 
 
-# In[ ]:
+# In[15]:
 
 
 
-def combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG):
+def combine_OG_query(OGs_queries, oma_db, threshold_least_query_sepecies_in_OG,project_folder):
     
     ########## Combine proteins of OG with queries ##################
     #################################################################
@@ -320,10 +310,18 @@ def combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG):
 
     current_time = datetime.now().strftime("%H:%M:%S")
     print("\n", current_time, "- Combining queries with OG is finished! number of OGs",len(seqRecords_all)) # 
+    
+    
+    
+    open_file = open(project_folder+"_file_combined_OGs.pkl", "wb")
+    pickle.dump(seqRecords_all, open_file)
+    open_file.close()
+
+    
     return(seqRecords_all)
 
 
-# In[ ]:
+# In[5]:
 
 
 
@@ -354,7 +352,70 @@ def run_msa_OG(seqRecords_OG_queries):
    
 
 
-# In[ ]:
+def run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder):
+        
+    iterotr_OGs = 0 
+    
+    result_mafft_all_species=[]
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
+    
+    
+    
+    with concurrent.futures.ProcessPoolExecutor(max_workers=number_max_workers) as executor: 
+        for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
+            result_mafft_all_species.append(output_values)
+
+            
+    
+    open_file = open(project_folder+"_file_msas.pkl", "wb")
+    pickle.dump(result_mafft_all_species, open_file)
+    open_file.close()
+    
+    return result_mafft_all_species
+    
+
+
+# In[6]:
+
+
+
+def filter_ogs(result_mafft_all_species,ogs_keep_number):
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Filtering MSA started.")
+
+    density_ogs=[]
+    for msa_og in result_mafft_all_species:
+
+        gap_count_og= 0
+        all_count_og=0
+        for record in msa_og:
+            seq=str(record.seq)
+            gap_count_og += seq.count("-") + seq.count("?") + seq.count(".") +seq.count("~")    
+        #gap_count_ogs.append(gap_count_og)
+        density_og=gap_count_og/(len(msa_og)*len(msa_og[0]))
+        density_ogs.append(density_og)
+        #if density_ogs> treshold_density:
+    plt.hist(density_ogs,bins=100) # , bins=10
+    #plt.show()
+    plt.savefig("./_density_ogs.pdf")
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- The histogram of density ogs is saved.")
+    
+    id_og_keep = np.argsort(density_ogs)[-ogs_keep_number:]
+    result_mafft_all_species_filtr = [result_mafft_all_species[i] for i in id_og_keep]
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Filtering MSA finished, keeping",len(result_mafft_all_species_filtr),"out of",len(result_mafft_all_species))       
+    
+
+    open_file = open(project_folder+"_file_msas_filtered.pkl", "wb")
+    pickle.dump(result_mafft_all_species, open_file)
+    open_file.close()
+
+        
+    return result_mafft_all_species_filtr
 
 
 
@@ -418,14 +479,12 @@ def concatante_alignments(result_mafft_all_species, project_folder):
     
 
 
-# In[ ]:
-
+# In[7]:
 
 
 
 def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
 
-    
     msa_filtered_row = [] # msa_fltr
     ratio_records=[]
     for record in msa:
@@ -461,17 +520,7 @@ def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
     
     return msa_filtered_row
     
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
+    
 
 def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
 
@@ -524,13 +573,7 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
     return msa_filtered_row_col
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+# In[8]:
 
 
 
@@ -563,9 +606,7 @@ def draw_tree(msa, project_folder):
 
 
 
-# In[ ]:
-
-
+# In[9]:
 
 
 
@@ -581,41 +622,27 @@ if __name__ == "__main__":
 
     OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
 
-    #seqRecords_all = combine_OG_query(OGs_queries, oma_db)
-    
-    threshold_least_query_sepecies_in_OG = 15
-    seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG)
-    #combine_OG_query(OGs_queries, oma_db)
-    
-    
-    num_OGs= len(seqRecords_all)
-    
-    
 
-
-# In[ ]:
+# In[10]:
 
 
 
+threshold_least_query_sepecies_in_OG = 13
+seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG,project_folder)
 
+#num_OGs= len(seqRecords_all)
 
-# In[ ]:
-
-
-
-iterotr_OGs = 0 
-
-result_mafft_all_species=[]
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
 
 number_max_workers = 1
+result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder)
 
-with concurrent.futures.ProcessPoolExecutor(max_workers=number_max_workers) as executor: 
-    for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
-        result_mafft_all_species.append(output_values)
 
-msa= concatante_alignments(result_mafft_all_species, project_folder)
+ogs_keep_number = 10
+result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
+
+
+
+msa= concatante_alignments(result_mafft_all_species_filtr, project_folder)
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- all msa are concatanated")
 
@@ -624,30 +651,12 @@ print(current_time, "- all msa are concatanated")
 # In[ ]:
 
 
-#     current_time = datetime.now().strftime("%H:%M:%S")
-#     print(current_time, "- Tree inference is started")
 
-#     concurrent.futures.as_completed(executor)
-#     tree_nwk = draw_tree(msa, project_folder)
-    
-    
-#     print(current_time, "- Tree inference is finsiehd. Thanks for your patience!")
-#     tree_nwk
-
-
-# In[ ]:
-
-
-#msa_origin =list(msa)[:]
-
-
-# In[ ]:
-
-
-#     #add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
-#     add="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_msa_concatanated.txt"
-#     msa = AlignIO.read(add,"fasta")
-#     print(len(msa),len(msa[0]))
+# reading pkl file 
+# open_file = open(project_folder+"_file_msas2.pkl", "rb")
+# result_mafft_all_species = pickle.load(open_file)
+# open_file.close()
+# print("seq read is loaded", len(seqRecords_all))
 
 
 # In[ ]:
@@ -656,26 +665,7 @@ print(current_time, "- all msa are concatanated")
 
 
 
-# In[ ]:
-
-
-##    Instead of running MSA and using concatatntion. you could used pre_calculated concat msa
-
-#     project_folder =  "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" # _msa_concatanated_hogmapX.txt"
-#     project_files = listdir(project_folder)
-#     query_species_names = []
-#     for file in project_files:
-#         if file.split(".")[-1]=="fa":
-#             file_name_split = file.split(".")[:-1]
-#             query_species_names.append('.'.join(file_name_split))
-
-
-#     msa_input = project_folder+"_msa_concatanated.txt"
-#     msa = AlignIO.read(msa_input,"fasta")
-#     print("finish reading file",len(msa),len(msa[0]))
-
-
-# In[ ]:
+# In[11]:
 
 
 current_time = datetime.now().strftime("%H:%M:%S")
@@ -692,200 +682,21 @@ msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-import ete3
-
-
-# In[ ]:
-
-
-msa_input = project_folder+"_msa_concatanated.txt"
-msa = AlignIO.read(msa_input,"fasta")
-print("finish reading file",len(msa),len(msa[0]))
-
-
-# In[ ]:
-
-
-msa2=msa[:3]
-
-
-# In[ ]:
-
-
-a=draw_tree(msa2,project_folder)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[25]:
-
-
-
-
-def read_taxonID_map(omaID_address,bird6ID_address):
-    
-    omaID_file = open(omaID_address,'r')
-    taxonID_omaID={}
-    omaID_taxonID={}
-    for line in omaID_file:
-        line_strip = line.strip()
-        if line_strip.startswith('#'):
-            pass
-            #header_lines_list.append(line_strip)
-        else:
-            line_parts=line_strip.split('\t')
-
-            omaID = line_parts[0]
-            taxonID = int(line_parts[1])
-            taxonID_omaID[taxonID]=omaID
-            omaID_taxonID[omaID]=taxonID
-            
-    omaID_file.close()
-        
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- The map for taxonID omaID of",len(taxonID_omaID),"records have read.") 
-    
-    
-    bird6ID_file = open(bird6ID_address,'r')
-    taxonID_bird6ID={}
-    bird6ID_taxonID= {}
-    for line in bird6ID_file:
-        line_strip = line.strip()
-        if line_strip.startswith('Or'):
-            pass
-            line_strip1=line_strip
-            #header_lines_list.append(line_strip)
-        else:
-            line_parts=line_strip.split('\t')
-
-            bird6ID = line_parts[6]
-            taxonID = int(line_parts[8])
-            taxonID_bird6ID[taxonID]=bird6ID
-            bird6ID_taxonID[bird6ID]=taxonID
-            
-    bird6ID_file.close()
-        
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- The map for taxonID bird6ID of",len(taxonID_bird6ID),"records have read.") 
-  
-    return (taxonID_omaID,taxonID_bird6ID,omaID_taxonID,bird6ID_taxonID)
-    
-            
-
-
-# In[26]:
-
-
-len(taxonID_list)
-
-
-# In[27]:
-
-
-(taxonID_omaID,taxonID_bird6ID,omaID_taxonID,bird6ID_taxonID) = read_taxonID_map(omaID_address,bird6ID_address)
-taxonID_map = {**taxonID_omaID,**taxonID_bird6ID }
-
-
-
-
-
-
-
-#print(len(taxonID_omaID),len(taxonID_bird6ID),len(taxonID_map))
-taxonID_list= list(taxonID_map.keys())
-
-import ete3
-ncbi = ete3.NCBITaxa()  # first time download in ~/.etetoolkit/
-ncbi_sub_tree = ncbi.get_topology(taxonID_list)
-
-for node in ncbi_sub_tree.traverse(strategy="postorder"):
-    node.name2 = node.name
-    if node.is_leaf() and int(node.name) in taxonID_map: # why ?
-        node.name = taxonID_map[int(node.name)]
-
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- The NCBI taxanomy is read and the leaves names changed to OMA/bird6 ID containing",len(ncbi_sub_tree),".") 
-#print(ncbi_sub_tree.get_ascii(attributes=["name"]))     
-#ncbi_sub_tree.write() 
-
-
-# In[8]:
-
-
-ncbi_sub_tree.write()
-
-
-# In[42]:
-
-
-bird_hog_tree_address="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/out4/_tree_filt_7.txt"
-#"/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_tree__msa_concatanated_filtered_row_col_0.00101.txt"
-bird_hog_tree= ete3.Tree(bird_hog_tree_address)
-
-
-
-
-# In[11]:
-
-
-a_count=0
-for node in ncbi_sub_tree.traverse(strategy="postorder"):
-    node.name2 = node.name
-    if node.is_leaf() : # why ?
-        a_count+=1
-
-
-# In[12]:
-
-
-a_count
-
-
 # In[13]:
 
 
-b_count=0
-for node in bird_hog_tree.traverse(strategy="postorder"):
-    if node.is_leaf() : # why ?
-        b_count+=1
-b_count
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Row-wise filtering of MSA is started.") 
+   
+tresh_ratio_gap_row = 0.7
+msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
 
+current_time = datetime.now().strftime("%H:%M:%S")
+print(current_time, "- Column-wise filtering of MSA is started.") 
 
-# In[9]:
+tresh_ratio_gap_col = 0.7
+msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
 
-
-bird_hog_tree.write()
-
-
-# In[7]:
-
-
-out = bird_hog_tree.robinson_foulds(ncbi_sub_tree,unrooted_trees=True)  # , expand_polytomies = True
-(rf, rf_max, common_attrs, names, edges_t1, edges_t2, discarded_edges_t1) =out
-print("RF distance is %s over a total of %s" %(rf, rf_max))
-
-
-#print "Partitions in tree2 that were not found in tree1:", parts_t1 - parts_t2
-#print "Partitions in tree1 that were not found in tree2:", parts_t2 - parts_t1
 
 
 # In[ ]:
@@ -894,460 +705,106 @@ print("RF distance is %s over a total of %s" %(rf, rf_max))
 
 
 
-# In[132]:
+# In[ ]:
 
 
-for node in bird_hog_tree.traverse(strategy="postorder"):
-    node.name2 = node.name
-    if node.is_leaf(): 
-        if "2000_X" in node.name:
-            node.name = node.name[:6]
-            #print(node.name)
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+################ STEP 1    Combine OG #########
+#if __name__ == "__main__":
+    (oma_db, hog_OG_map, list_speices) = parse_oma(oma_database_address, hog_og_map_address)
+    (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
+    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names )
+    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species)
+    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
+    threshold_least_query_sepecies_in_OG = int(argv[2])
+    seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG)
+    num_OGs= len(seqRecords_all)
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "-  for ",len(seqRecords_all)," OGs.")
+    print("saving as pickle")
+    import pickle
+    open_file = open(project_folder+"_file.pkl", "wb")
+    pickle.dump(seqRecords_all, open_file)
+    open_file.close()
+    
+    
+################ STEP 2   MSA     PARALELL #########
+
+
+    import pickle
+    open_file = open(project_folder+"_file.pkl", "rb")
+    seqRecords_all = pickle.load(open_file)
+    open_file.close()
+    print("seq read is loaded", len(seqRecords_all))
+    number_workers  = int(argv[2])
+
+    iterotr_OGs = 0
+    result_mafft_all_species=[]
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=number_workers) as executor: # ProcessPoolExecutor(max_workers=5)
+        for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
+            result_mafft_all_species.append(output_values)
+
+            
+    msa= concatante_alignments(result_mafft_all_species, project_folder)
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- all msa are concatanated")
 
     
-(rf, rf_max, common_attrs, names, edges_t1, edges_t2, discarded_edges_t1) =out
-print("RF distance is %s over a total of %s" %(rf, rf_max))
-
-
-#print "Partitions in tree2 that were not found in tree1:", parts_t1 - parts_t2
-#print "Partitions in tree1 that were not found in tree2:", parts_t2 - parts_t1
-
-
-# In[10]:
-
-
-list_leaf= []
-for node in bird_hog_tree.traverse(strategy="postorder"):
-    if node.is_leaf(): 
-        list_leaf.append(node.name)
-
-
-# In[ ]:
-
-
-
-
-
-# In[138]:
-
-
-#ncbi_sub_tree.write() 
-
-
-# In[140]:
-
-
-
-node_name_list= []
-for node in bird_hog_tree.traverse(strategy="postorder"):
-    node.name2 = node.name
-    if node.is_leaf(): 
-        if "2000_X" in node.name:
-            node.name = node.name[:6]
-        node_name_list.append(node.name)
-            
-            
-            
-
-
-# In[164]:
-
-
-not_list=['PHYPR', 'GUITH', 'CYAME', 'PUCGR', 'COPCI', 'SCHCO', 'PHACH', 'EMEND', 'PHAND', 'NECHA', 'VERDA', 'PROLT', 'BATDE', 'CRYPV', 'TOXGO', 'MYCCU', 'BURSC', 'METAA', 'AGRSH', 'MELGA', 'CHICK', 'ANAPL', 'MELUD', 'FICAL', 'PARMJ', 'TAEGU', 'JUNHY', 'STAA3', 'LACRD', 'SERCA', 'ANAPLA']
-
-#bird6ID_list=list(taxonID_bird6ID.keys()) taxon
-node_name_list_sub = [i for i in node_name_list if i not in not_list and i in bird6ID_list]
-
-
-# In[165]:
-
-
-node_name_list_sub
-
-
-# In[166]:
-
-
-
-ncbi_sub_tree_original= ncbi_sub_tree
-ncbi_sub_tree.prune(node_name_list_sub)
-
-
-# In[9]:
-
-
-ncbi_sub_tree.write()
-
-
-# In[163]:
-
-
-bird6ID_list=[]
-bird6ID_file = open(bird6ID_address,'r')
-taxonID_bird6ID={}
-for line in bird6ID_file:
-    line_strip = line.strip()
-    if line_strip.startswith('Or'):
-        pass
-        line_strip1=line_strip
-        #header_lines_list.append(line_strip)
-    else:
-        line_parts=line_strip.split('\t')
-
-        bird6ID = line_parts[6]
-        bird6ID_list.append(bird6ID)
-
-
-# In[162]:
-
-
-line_parts[6]
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-t = Tree('((((H,K),(F,I)G),E),((L,(N,Q)O),(P,S)));', format=1)
-print("Original tree looks like this:")
-print(t)
-
-t.prune(["H","F","E","Q", "P"])
-print("Pruned tree"
-print t
-
-
-# In[168]:
-
-
-
-bird_hog_tree_original= bird_hog_tree
-bird_hog_tree.prune(node_name_list_sub)
-
-
-# In[169]:
-
-
-bird_hog_tree.write()
-
-
-# In[170]:
-
-
-out = bird_hog_tree.robinson_foulds(ncbi_sub_tree,unrooted_trees=True)  # , expand_polytomies = True
-(rf, rf_max, common_attrs, names, edges_t1, edges_t2, discarded_edges_t1) =out
-print("RF distance is %s over a total of %s" %(rf, rf_max))
-
-
-#print "Partitions in tree2 that were not found in tree1:", parts_t1 - parts_t2
-#print "Partitions in tree1 that were not found in tree2:", parts_t2 - parts_t1
-
-
-# In[18]:
-
-
-
-taxonID_from_oma_list_dic={}
-
-list_leaf= []
-for node in bird_hog_tree.traverse(strategy="postorder"):
-    if node.is_leaf(): 
-        list_leaf.append(node.name)
-
-taxonID_from_oma_list =[]
-omaID_file = open(omaID_address,'r')
-# taxonID_omaID_small ={}
-for line in omaID_file:
-    line_strip = line.strip()
-    if line_strip.startswith('#'):
-        pass
-        #header_lines_list.append(line_strip)
-    else:
-        line_parts=line_strip.split('\t')         
-        omaID = line_parts[0]
-        taxonID = int(line_parts[1])
-        
-        if omaID in list_leaf:
-#             taxonID_omaID_small[taxonID]=omaID
-            taxonID_from_oma_list.append(taxonID)
-
-omaID_file.close()
-
-
-taxonID_from_bird_list =[]
-bird6ID_file = open(bird6ID_address,'r')
-# taxonID_bird6ID={}
-for line in bird6ID_file:
-    line_strip = line.strip()
-    if line_strip.startswith('Or'):
-        pass
-        line_strip1=line_strip
-        #header_lines_list.append(line_strip)
-    else:
-        line_parts=line_strip.split('\t')
-
-        bird6ID = line_parts[6]        
-        taxonID = int(line_parts[8])
-        if bird6ID in list_leaf:
-            taxonID_from_bird_list.append(taxonID)
-#         taxonID_bird6ID[taxonID]=bird6ID
-        
-        
-        
-bird6ID_file.close()
-
-# current_time = datetime.now().strftime("%H:%M:%S")
-# print(current_time, "- The map for taxonID bird6ID of",len(taxonID_bird6ID),"records have read.") 
-
-taxonID_list_all =  taxonID_from_bird_list + taxonID_from_oma_list
-
-print(len(taxonID_list_all))
-
-ncbi_sub_tree_small = ncbi.get_topology(taxonID_list_all)
-
-for node in ncbi_sub_tree_small.traverse(strategy="postorder"):
-    node.name2 = node.name
-    if node.is_leaf() and int(node.name) in taxonID_map: # why ?
-        node.name = taxonID_map[int(node.name)]
-
-        
-        
-ncbi_sub_tree_small.write()
-
-
-# In[19]:
-
-
-len(ncbi_sub_tree_small),len(bird_hog_tree)
-
-
-# In[24]:
-
-
-out = ncbi_sub_tree_small.robinson_foulds(bird_hog_tree,unrooted_trees=True)  # , expand_polytomies = True
-(rf, rf_max, common_attrs, names, edges_t1, edges_t2, discarded_edges_t1) =out
-print("RF distance is %s over a total of %s" %(rf, rf_max))
-
-
-# In[20]:
-
-
-len(taxonID_from_bird_list),len(taxonID_list_all),len()
-
-
-# In[31]:
-
-
-taxonID_list_all =  taxonID_from_bird_list + taxonID_from_oma_list
-#taxonID_list_all
-
-
-# In[21]:
-
-
-taxonID_list_al_unq= set(taxonID_list_all)
-for i in taxonID_list_al_unq:
-    if taxonID_list_all.count(i)>1:
-        print(i)
     
+################ STEP 3   MSA  Filtering #########
 
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "start reading msa file")
+    project_folder = argv[1] # "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" # _msa_concatanated_hogmapX.txt"
+    msa_file= argv[2]
+    msa_input = project_folder+ msa_file  #"out2/_msa_concatanated_filtered_row_col_0.55.txt"  # _row_0.0201.txt"
+    msa = AlignIO.read(msa_input,"fasta")
+    print("finish reading file",len(msa),len(msa[0]))
 
-# In[ ]:
+    project_files = listdir(project_folder)
+    query_species_names = []
+    for file in project_files:
+        if file.split(".")[-1]=="fa":
+            file_name_split = file.split(".")[:-1]
+            query_species_names.append('.'.join(file_name_split))
 
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Row-wise filtering of MSA is started.")
 
-ncbi_sub_tree_original= ncbi_sub_tree
-ncbi_sub_tree.prune(node_name_list_sub)
+    tresh_ratio_gap_row = float(argv[3]) #0.85
+    msa_filtered_row = msa_filter_row(msa, project_folder,tresh_ratio_gap_row,query_species_names)
 
 
-# In[ ]:
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Column-wise filtering of MSA is started.")
 
+    tresh_ratio_gap_col = float(argv[4])
+    msa_filtered_row_col= msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,project_folder)
 
 
+# In[16]:
 
 
-# In[29]:
 
-
-for i in [59729,59894,8839,9031,9135,9157]:
-    if i in taxonID_omaID:
-        print(taxonID_omaID[i])
-    if i in taxonID_bird6ID:
-        print(taxonID_bird6ID[i])
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-ncbi_sub_tree_original= ncbi_sub_tree
-ncbi_sub_tree.prune(node_name_list_sub)
-
-
-# In[ ]:
-
-
-taxonID_bird6ID[taxonID]=bird6ID
-bird6ID_taxonID[bird6ID]=taxonID
-        
-        
-
-
-# In[54]:
-
-
-five_repetead=set(["TAEGU","FICAL","ANAPL","CHICK","SERCA","PARMJ"])
-
-node_uniq=list(set(list(bird6ID_taxonID.keys())+list(omaID_taxonID.keys()))-five_repetead)
-len(node_uniq)
-
-
-# In[ ]:
-
-
-taxonID_map = {**taxonID_omaID,**taxonID_bird6ID }
-
-
-# In[48]:
-
-
-
-
-bird_hog_tree.nodes()
-
-
-# In[55]:
-
-
-#bird_hog_tree=
-
-
-# In[46]:
-
-
-len(bird_hog_tree)
-
-
-# In[59]:
-
-
-bird_hog_tree_address="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/out4/_tree_filt_7.txt"
-#"/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/_tree__msa_concatanated_filtered_row_col_0.00101.txt"
-bird_hog_tree= ete3.Tree(bird_hog_tree_address)
-
-
-list_node=[]
-for node in bird_hog_tree.traverse(strategy="postorder"):
-
-    if node.is_leaf() : # why ?
-        list_node.append(node.name)
-
-len(list_node)
-
-
-# In[60]:
-
-
-five_repetead=set(["TAEGU","FICAL","ANAPL","CHICK","SERCA","PARMJ"])
-list_node_unq=set(list_node)-five_repetead
-list_node_unq
-
-
-# In[68]:
-
-
-# bird_hog_tree.prune(list_node_unq)
-bird_hog_tree.write()
-
-
-# In[69]:
-
-
-ncbi_sub_tree_small.write()
-
-
-# In[64]:
-
-
-len(bird_hog_tree)
-
-
-# In[66]:
-
-
-len(ncbi_sub_tree_small)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-reroot_at_edge
-
-
-# In[71]:
-
-
-bird_hog_tree.rerootatedge("XENLA")
-
-# reroot_at_edge
-
-
-# In[67]:
-
-
-out = bird_hog_tree.robinson_foulds(ncbi_sub_tree_small,unrooted_trees=True)  # , expand_polytomies = True
-(rf, rf_max, common_attrs, names, edges_t1, edges_t2, discarded_edges_t1) =out
-
-# rf, max_rf, common_leaves, parts_t1, parts_t2 = t1.robinson_foulds(t2)
-
-
-print("RF distance is %s over a total of %s" %(rf, rf_max))
-
-
-# In[91]:
-
-
-#bird_hog_tree, ncbi_sub_tree_small
-len(bird_hog_tree)
-
-
-# In[94]:
-
-
-len(out[2]),len(out[3]),len(out[4]),len(out[5])
-
-
-# In[88]:
-
-
-out[0],out[1],list(out[2])[:3],list(out[3])[:3],list(out[4])[:3]
-
-
-# In[96]:
-
-
-ete3.v
 
 
 # In[ ]:
