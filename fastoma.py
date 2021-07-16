@@ -45,10 +45,13 @@ omaID_address = datasets_address+"oma-species.txt"
 bird6ID_address = datasets_address+"info.tsv"
 
 
+project_folder ="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/" 
 # very small
 #project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
 
-project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
+
+## global variable
+#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
 
 #project_folder = argv[1]
 
@@ -87,7 +90,7 @@ def parse_oma(oma_database_address, hog_og_map_address):
     return (oma_db, hog_OG_map, list_speices)
 
 
-def parse_proteome(project_folder, list_speices):
+def parse_proteome(list_speices):
     
     ############### Parsing query proteome of species #######
     #########################################################
@@ -122,7 +125,7 @@ def parse_proteome(project_folder, list_speices):
 
 
 
-def parse_hogmap_omamer(project_folder , query_species_names):
+def parse_hogmap_omamer(query_species_names):
 
     ################### Parsing omamer's output  ########
     #####################################################
@@ -357,7 +360,64 @@ def gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_
 
 
 
-def combine_OG_query(OGs_queries, oma_db, threshold_least_query_sepecies_in_OG,project_folder):
+
+    
+def filter_gathered_OG(OGs_queries, query_species_names,keep_og_treshold_species_query):
+
+    
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Start filtering OGs of proteme queries with length of ", len(OGs_queries),"for ",len(query_species_names),"species.") 
+       
+        
+        
+    OGs_queries_filtr={}
+
+    query_species_og_kept_set= set()
+
+    query_species_num_OGs_list=[]
+    for OG_id, values in OGs_queries.items():
+        query_species_og= list(values.keys())
+
+        query_species_num_OGs_list.append(len(query_species_og)) 
+        if len(query_species_og) > keep_og_treshold_species_query:
+            OGs_queries_filtr[OG_id]=values
+            query_species_og_kept_set= query_species_og_kept_set.union(set(query_species_og))
+
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Finished filetering from ",len(OGs_queries),", now only",len(OGs_queries_filtr),"OGs are remained.") 
+               
+
+
+    not_included_species =[]
+    for i in set(query_species_names):
+        if i not in query_species_og_kept_set:
+            not_included_species.append(i)
+
+    
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- These species missed due to the threshold of",keep_og_treshold_species_query,":",not_included_species) 
+               
+
+
+    #query_species_num_OGs_list
+    # for i in not_included_species:
+    #     #print(i)
+    #     for OG_id, values in OGs_queries.items():
+    #         if i in values:
+    #             print(values.keys())
+    # easiet way keep the first one or make list and keep the best
+    # but better to set trehsold not to misss any species 
+    
+    return OGs_queries_filtr
+    
+
+
+# In[5]:
+
+
+
+def combine_OG_query(OGs_queries, oma_db, threshold_least_query_sepecies_in_OG):
     
     ########## Combine proteins of OG with queries ##################
     #################################################################
@@ -403,7 +463,7 @@ def combine_OG_query(OGs_queries, oma_db, threshold_least_query_sepecies_in_OG,p
     return(seqRecords_all)
 
 
-# In[5]:
+# In[6]:
 
 
 
@@ -434,7 +494,7 @@ def run_msa_OG(seqRecords_OG_queries):
    
 
 
-def run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder):
+def run_msa_OG_parallel(seqRecords_all,number_max_workers):
         
     iterotr_OGs = 0 
     
@@ -458,7 +518,7 @@ def run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder):
     
 
 
-# In[6]:
+# In[7]:
 
 
 
@@ -481,7 +541,7 @@ def filter_ogs(result_mafft_all_species,ogs_keep_number):
         #if density_ogs> treshold_density:
     plt.hist(density_ogs,bins=100) # , bins=10
     #plt.show()
-    plt.savefig("./_density_ogs.pdf")
+    plt.savefig(project_folder+"_density_ogs.pdf")
     current_time = datetime.now().strftime("%H:%M:%S")
     print(current_time, "- The histogram of density ogs is saved.")
     
@@ -492,8 +552,8 @@ def filter_ogs(result_mafft_all_species,ogs_keep_number):
     print(current_time, "- Filtering MSA finished, keeping",len(result_mafft_all_species_filtr),"out of",len(result_mafft_all_species))       
     
 
-    open_file = open(project_folder+"_file_msas_filtered.pkl", "wb")
-    pickle.dump(result_mafft_all_species, open_file)
+    open_file = open(project_folder+"_"+str(ogs_keep_number)+"_file_msas_filtered.pkl", "wb")
+    pickle.dump(result_mafft_all_species_filtr, open_file)
     open_file.close()
 
         
@@ -501,22 +561,26 @@ def filter_ogs(result_mafft_all_species,ogs_keep_number):
 
 
 
-def concatante_alignments(result_mafft_all_species, project_folder):
+def concatante_alignments(result_mafft_all_species,ogs_keep_number):
     ############## Concatante alignments  ##############
     ####################################################
 
     #alignments= result_maf2_all
-
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "-  MSA concatanation started")
+    
+    
     alignments= result_mafft_all_species
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- alignments len",len(alignments))
+    print(current_time, "- Alignments len",len(alignments))
     #print([len(aln) for aln in alignments ])
     #print([len(seq) for aln in alignments for seq in aln])
 
     all_labels_raw = [seq.id for aln in alignments for seq in aln]
     all_labels = set(all_labels_raw)
-    print("ids: ",len(all_labels),len(all_labels_raw))
-
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- ids: ",len(all_labels),len(all_labels_raw))
+    
     # Make a dictionary to store info as we go along
     # (defaultdict is convenient -- asking for a missing key gives back an empty list)
     concat_buf = defaultdict(list)
@@ -547,25 +611,28 @@ def concatante_alignments(result_mafft_all_species, project_folder):
                                 for (label, seq_arr) in concat_buf.items())
 
 
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "-  MSA concatanation finished")
 
-    out_name_msa=project_folder+"_msa_concatanated.txt"
+    
+    out_name_msa=project_folder+"_"+str(ogs_keep_number)+"_msa_concatanated.txt"
     handle_msa_fasta = open(out_name_msa,"w")
     SeqIO.write(msa, handle_msa_fasta,"fasta")
     handle_msa_fasta.close()
     
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- ", len(msa),msa.get_alignment_length()) # super matrix size
+    print(current_time, "- MSA concatanation has been written in the file", len(msa),msa.get_alignment_length()) # super matrix size
     
     return msa
     
     
 
 
-# In[7]:
+# In[8]:
 
 
 
-def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
+def msa_filter_row(msa,tresh_ratio_gap_row,query_species_names,ogs_keep_number):
 
     msa_filtered_row = [] # msa_fltr
     ratio_records=[]
@@ -591,8 +658,7 @@ def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
     print(current_time, "- Row-wise filtering of MSA is finished.") 
     print(current_time, "- Out of ",len(msa),"species,",len(msa_filtered_row),"species (row of msa) remained.")
 
-
-    out_name_msa=project_folder+"_msa_concatanated_filtered_row_"+str(tresh_ratio_gap_row)+".txt"
+    out_name_msa=project_folder+"_"+str(ogs_keep_number)+"_msa_concatanated_filtered_row_"+str(tresh_ratio_gap_row)+".txt"
     handle_msa_fasta = open(out_name_msa,"w")
     SeqIO.write(msa_filtered_row, handle_msa_fasta,"fasta")
     handle_msa_fasta.close()
@@ -604,7 +670,7 @@ def msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names):
     
     
 
-def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
+def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,tresh_ratio_gap_row,ogs_keep_number):
 
     ratio_col_all = []
 
@@ -627,7 +693,7 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
 
     plt.hist(ratio_col_all,bins=100) # , bins=10
     #plt.show()
-    plt.savefig("./__ratio_col.pdf")
+    plt.savefig(project_folder+"_ratio_col.pdf")
 
     current_time = datetime.now().strftime("%H:%M:%S")
     print(current_time, "- Columns indecis extracted. Out of ", length_record,"columns,",len(keep_cols),"is remained.") 
@@ -642,8 +708,7 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
         msa_filtered_row_col.append(record_edited)                         
 
 
-    
-    out_name_msa=project_folder+"_msa_concatanated_filtered_row_col_"+str(tresh_ratio_gap_col)+".txt"
+    out_name_msa=project_folder+"_"+str(ogs_keep_number)+"_msa_concatanated_filtered_row_"+str(tresh_ratio_gap_row)+"_col_"+str(tresh_ratio_gap_col)+".txt"
     handle_msa_fasta = open(out_name_msa,"w")
     SeqIO.write(msa_filtered_row_col, handle_msa_fasta,"fasta")
     handle_msa_fasta.close()
@@ -655,11 +720,11 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col):
     return msa_filtered_row_col
 
 
-# In[8]:
+# In[12]:
 
 
 
-def draw_tree(msa, project_folder):
+def draw_tree(msa):
     ############## Tree inference  ###################
     ##################################################
 
@@ -682,54 +747,39 @@ def draw_tree(msa, project_folder):
     return tree_nwk
 
 
-# In[ ]:
-
-
-
-
-
-# In[9]:
-
+# In[10]:
 
 
 if __name__ == "__main__":
     (oma_db, hog_OG_map, list_speices) = parse_oma(oma_database_address, hog_og_map_address)
 
 
-    (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
+    (query_species_names, query_prot_records_species) = parse_proteome(list_speices)
 
+    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(query_species_names)
 
-# In[10]:
-
-
-(query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names)
-
-
-(query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog_pure(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species) # #extract_unique_hog old function
-
-OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+    
+    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog_pure(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species) # #extract_unique_hog old function
 
 
 # In[11]:
 
 
 
-threshold_least_query_sepecies_in_OG = 15
-seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG,project_folder)
+    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
+        
 
-#num_OGs= len(seqRecords_all)
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
@@ -743,8 +793,60 @@ seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepe
 
 
 
-    number_max_workers = 1
-    result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers,project_folder)
+    keep_og_treshold_species_query = 360 # 6
+
+    OGs_queries_filtr= filter_gathered_OG(OGs_queries, query_species_names,keep_og_treshold_species_query)
+
+
+# In[ ]:
+
+
+
+
+        
+    threshold_least_query_sepecies_in_OG = 320 # 15
+    seqRecords_all = combine_OG_query(OGs_queries_filtr, oma_db,threshold_least_query_sepecies_in_OG)
+
+    #num_OGs= len(seqRecords_all)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+    number_max_workers = 60
+    result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers)
 
     
     ogs_keep_number = 2
@@ -752,9 +854,8 @@ seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepe
 
 
     
-    msa= concatante_alignments(result_mafft_all_species_filtr, project_folder)
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- all msa are concatanated")
+    msa= concatante_alignments(result_mafft_all_species_filtr,ogs_keep_number)
+
 
     
 
@@ -782,20 +883,20 @@ seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepe
 
 
 
-# In[15]:
+# In[ ]:
 
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Row-wise filtering of MSA is started.") 
    
 tresh_ratio_gap_row = 0.3
-msa_filtered_row = msa_filter_row(msa,project_folder,tresh_ratio_gap_row,query_species_names)
+msa_filtered_row = msa_filter_row(msa,tresh_ratio_gap_row,query_species_names,ogs_keep_number)
 
 current_time = datetime.now().strftime("%H:%M:%S")
 print(current_time, "- Column-wise filtering of MSA is started.") 
 
 tresh_ratio_gap_col = 0.3
-msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
+msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,tresh_ratio_gap_row,ogs_keep_number)
 
 
 
@@ -826,79 +927,11 @@ msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col)
 # In[ ]:
 
 
-################ STEP 1    Combine OG #########
-#if __name__ == "__main__":
-    (oma_db, hog_OG_map, list_speices) = parse_oma(oma_database_address, hog_og_map_address)
-    (query_species_names, query_prot_records_species) = parse_proteome(project_folder, list_speices)
-    (query_prot_names_species, query_hogids_species) = parse_hogmap_omamer(project_folder,query_species_names )
-    (query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species) = extract_unique_hog(query_species_names,query_hogids_species, query_prot_names_species,query_prot_records_species)
-    OGs_queries = gather_OG(query_species_names, query_hogids_filtr_species, query_prot_names_filtr_species, query_prot_records_filtr_species)
-    threshold_least_query_sepecies_in_OG = int(argv[2])
-    seqRecords_all = combine_OG_query(OGs_queries, oma_db,threshold_least_query_sepecies_in_OG)
-    num_OGs= len(seqRecords_all)
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "-  for ",len(seqRecords_all)," OGs.")
-    print("saving as pickle")
-    import pickle
-    open_file = open(project_folder+"_file.pkl", "wb")
-    pickle.dump(seqRecords_all, open_file)
-    open_file.close()
-    
-    
-################ STEP 2   MSA     PARALELL #########
-
-
-    import pickle
-    open_file = open(project_folder+"_file.pkl", "rb")
-    seqRecords_all = pickle.load(open_file)
-    open_file.close()
-    print("seq read is loaded", len(seqRecords_all))
-    number_workers  = int(argv[2])
-
-    iterotr_OGs = 0
-    result_mafft_all_species=[]
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Parallel msa is started for ",len(seqRecords_all)," OGs.")
-    with concurrent.futures.ProcessPoolExecutor(max_workers=number_workers) as executor: # ProcessPoolExecutor(max_workers=5)
-        for seqRecords_OG_queries, output_values in zip(seqRecords_all, executor.map(run_msa_OG, seqRecords_all)):
-            result_mafft_all_species.append(output_values)
-
-            
-    msa= concatante_alignments(result_mafft_all_species, project_folder)
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- all msa are concatanated")
-
-    
-    
-################ STEP 3   MSA  Filtering #########
-
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "start reading msa file")
-    project_folder = argv[1] # "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" # _msa_concatanated_hogmapX.txt"
-    msa_file= argv[2]
-    msa_input = project_folder+ msa_file  #"out2/_msa_concatanated_filtered_row_col_0.55.txt"  # _row_0.0201.txt"
-    msa = AlignIO.read(msa_input,"fasta")
-    print("finish reading file",len(msa),len(msa[0]))
-
-    project_files = listdir(project_folder)
-    query_species_names = []
-    for file in project_files:
-        if file.split(".")[-1]=="fa":
-            file_name_split = file.split(".")[:-1]
-            query_species_names.append('.'.join(file_name_split))
-
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Row-wise filtering of MSA is started.")
-
-    tresh_ratio_gap_row = float(argv[3]) #0.85
-    msa_filtered_row = msa_filter_row(msa, project_folder,tresh_ratio_gap_row,query_species_names)
-
-
-    current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- Column-wise filtering of MSA is started.")
-
-    tresh_ratio_gap_col = float(argv[4])
-    msa_filtered_row_col= msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,project_folder)
+#     open_file = open(project_folder+"_file.pkl", "rb")
+#     seqRecords_all = pickle.load(open_file)
+#     open_file.close()
+#     print("seq read is loaded", len(seqRecords_all))
+#     number_workers  = int(argv[2])
 
 
 # In[ ]:
