@@ -45,13 +45,13 @@ omaID_address = datasets_address+"oma-species.txt"
 bird6ID_address = datasets_address+"info.tsv"
 
 
-project_folder ="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/" 
+#project_folder ="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/" 
 # very small
 #project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
 
 
 ## global variable
-#project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
+project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/A/f7_2kA/" 
 
 #project_folder = argv[1]
 
@@ -720,7 +720,7 @@ def msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,tresh_ratio_gap_row,ogs
     return msa_filtered_row_col
 
 
-# In[12]:
+# In[9]:
 
 
 
@@ -793,7 +793,7 @@ if __name__ == "__main__":
 
 
 
-    keep_og_treshold_species_query = 360 # 6
+    keep_og_treshold_species_query =  13 # 360 #
 
     OGs_queries_filtr= filter_gathered_OG(OGs_queries, query_species_names,keep_og_treshold_species_query)
 
@@ -803,52 +803,166 @@ if __name__ == "__main__":
 
 
 
-        
-    threshold_least_query_sepecies_in_OG = 320 # 15
-    seqRecords_all = combine_OG_query(OGs_queries_filtr, oma_db,threshold_least_query_sepecies_in_OG)
 
-    #num_OGs= len(seqRecords_all)
+# In[14]:
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-    number_max_workers = 60
-    result_mafft_all_species = run_msa_OG_parallel(seqRecords_all,number_max_workers)
 
     
+    
+    
+
+def combine_OG_query_filtr(OGs_queries_filtr, oma_db, threshold_least_query_sepecies_in_OG,kept_oma_species_num):
+    
+#     ########## Combine proteins of OG with queries ##################
+#     #################################################################
+    
+    species_og_dic={}
+    
+    proteins_object_OG_dic={}
+    for OG_q in OGs_queries_filtr.keys():  # OG found in the query
+
+        dic_species_prot = OGs_queries_filtr[OG_q]
+        if len(dic_species_prot) >threshold_least_query_sepecies_in_OG:
+            if OG_q != -1:
+                OG_members = oma_db.oma_group_members(OG_q)
+                proteins_object_OG = [db.ProteinEntry(oma_db, pr) for pr in OG_members]  # the protein IDs of og members
+                proteins_object_OG_dic[OG_q]=proteins_object_OG
+                
+                species_all_og = [ str(pr.genome.uniprot_species_code) for pr in proteins_object_OG ]
+
+                for species in species_all_og:
+                    if species in species_og_dic:
+                        #species_og_dic[species].append(OG_q)                        
+                        species_og_dic[species] +=1 
+                    else:
+                        #species_og_dic[species]=[OG_q]
+                        species_og_dic[species] = 1
+                        
+    species_oma_list=[]
+    og_num_list = []
+    for species_oma, og_num in species_og_dic.items():
+        og_num_list.append(og_num)
+        species_oma_list.append(species_oma)
+        
+    id_species_keep = np.argsort(og_num_list)[-kept_oma_species_num:]
+    species_oma_kept = [species_oma_list[i] for i in id_species_keep]
+
+
+    
+    seqRecords_OG_queries = []
+    seqRecords_all_filtr = []
+    for OG_q in OGs_queries_filtr.keys():  # OG found in the query
+
+        dic_species_prot = OGs_queries_filtr[OG_q]
+        if len(dic_species_prot) >threshold_least_query_sepecies_in_OG:
+            
+            seqRecords_query_edited_all = list(dic_species_prot.values())
+            if OG_q != -1:
+                proteins_object_OG = proteins_object_OG_dic[OG_q]
+                 # covnert to biopython objects
+                seqRecords_OG = []
+                for pr in proteins_object_OG:
+                    species_code = str(pr.genome.uniprot_species_code)
+                    if species_code in species_oma_kept:
+                        seq_record = SeqRecord(Seq(pr.sequence),species_code,'','') 
+                        seqRecords_OG.append(seq_record)
+                
+                seqRecords_OG_queries =seqRecords_OG + seqRecords_query_edited_all
+                current_time = datetime.now().strftime("%H:%M:%S")
+                #print(current_time, " - Length of OG",OG_q,"was",len(seqRecords_OG),",now is",len(seqRecords_OG_queries))
+                print(current_time, " - Combining OG",OG_q," with length of ",len(seqRecords_OG),"\t with a query ",len(seqRecords_query_edited_all)," is just finished.")
+
+                seqRecords_all_filtr.append(seqRecords_OG_queries)
+
+
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print("\n", current_time, "- Combining queries with OG is finished! number of OGs",len(seqRecords_all_filtr)) # 
+    
+    
+    
+    open_file = open(project_folder+"_file_combined_OGs_filtr.pkl", "wb")
+    pickle.dump(seqRecords_all_filtr, open_file)
+    open_file.close()
+
+    
+    return(seqRecords_all_filtr)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[15]:
+
+
+
+    threshold_least_query_sepecies_in_OG = 13 # 320 # 
+
+    kept_oma_species_num = 20
+    
+    seqRecords_all_filtr = combine_OG_query_filtr(OGs_queries_filtr, oma_db, threshold_least_query_sepecies_in_OG,kept_oma_species_num)
+    #seqRecords_all_old = combine_OG_query(OGs_queries_filtr, oma_db,threshold_least_query_sepecies_in_OG)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+number_max_workers = 2
+result_mafft_all_species = run_msa_OG_parallel(seqRecords_all_filtr,number_max_workers)
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
     ogs_keep_number = 2
     result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
 
