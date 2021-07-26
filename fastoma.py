@@ -45,7 +45,7 @@ omaID_address = datasets_address+"oma-species.txt"
 bird6ID_address = datasets_address+"info.tsv"
 
 
-project_folder ="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/hogmapX/" 
+project_folder ="/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3b/hogmapX/" 
 # very small
 #project_folder = "/work/FAC/FBM/DBC/cdessim2/default/smajidi1/fastoma/v3a/ST/f4_100S/" 
 
@@ -659,7 +659,7 @@ def concatante_alignments(result_mafft_all_species,ogs_keep_number):
 
     #alignments= result_maf2_all
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "-  MSA concatanation started")
+    print(current_time, "-  MSA concatenation started")
     
     
     alignments= result_mafft_all_species
@@ -704,7 +704,7 @@ def concatante_alignments(result_mafft_all_species,ogs_keep_number):
 
 
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "-  MSA concatanation finished")
+    print(current_time, "-  MSA concatenation finished")
 
     
     out_name_msa=project_folder+"_"+str(ogs_keep_number)+"_msa_concatanated.txt"
@@ -713,7 +713,7 @@ def concatante_alignments(result_mafft_all_species,ogs_keep_number):
     handle_msa_fasta.close()
     
     current_time = datetime.now().strftime("%H:%M:%S")
-    print(current_time, "- MSA concatanation has been written in the file", len(msa),msa.get_alignment_length()) # super matrix size
+    print(current_time, "- MSA concatenation has been written in the file", len(msa),msa.get_alignment_length()) # super matrix size
     
     return msa
     
@@ -956,7 +956,7 @@ if __name__ == "__main__":
 
 
 
-# In[ ]:
+# In[17]:
 
 
 number_max_workers = 1
@@ -970,20 +970,26 @@ result_mafft_all_species = run_msa_OG_parallel(seqRecords_all_filtr,number_max_w
 
 
 
-# In[ ]:
+# In[1]:
 
 
 
 
 
-    ogs_keep_number = 2
+    ogs_keep_number = 500
     result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
-
-
-    
     msa= concatante_alignments(result_mafft_all_species_filtr,ogs_keep_number)
 
 
+
+    ogs_keep_number = 200
+    result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
+    msa= concatante_alignments(result_mafft_all_species_filtr,ogs_keep_number)
+    
+
+    ogs_keep_number = 100
+    result_mafft_all_species_filtr = filter_ogs(result_mafft_all_species,ogs_keep_number)
+    msa= concatante_alignments(result_mafft_all_species_filtr,ogs_keep_number)
     
 
 
@@ -1010,7 +1016,7 @@ result_mafft_all_species = run_msa_OG_parallel(seqRecords_all_filtr,number_max_w
 
 
 
-# In[ ]:
+# In[22]:
 
 
 current_time = datetime.now().strftime("%H:%M:%S")
@@ -1019,18 +1025,17 @@ print(current_time, "- Row-wise filtering of MSA is started.")
 tresh_ratio_gap_row = 0.3
 msa_filtered_row = msa_filter_row(msa,tresh_ratio_gap_row,query_species_names,ogs_keep_number)
 
-current_time = datetime.now().strftime("%H:%M:%S")
-print(current_time, "- Column-wise filtering of MSA is started.") 
 
-tresh_ratio_gap_col = 0.3
-msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,tresh_ratio_gap_row,ogs_keep_number)
+
+# In[23]:
 
 
 
-# In[ ]:
-
-
-
+    current_time = datetime.now().strftime("%H:%M:%S")
+    print(current_time, "- Column-wise filtering of MSA is started.") 
+    
+    tresh_ratio_gap_col = 0.3
+    msa_filtered_row_col=  msa_filter_col(msa_filtered_row, tresh_ratio_gap_col,tresh_ratio_gap_row,ogs_keep_number)
 
 
 # In[ ]:
