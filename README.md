@@ -53,7 +53,7 @@ After few minutes, the HOG maps of species are ready in the `hogmap` folder.
 number_threads=20
 python fastoma-tree.py  ./test_data/dataset/   ./test_data/  ${number_threads}
 ```
-The second argument should contain two folders `proteome` and `hogmap`. The output will be the multiple sequence alignment supermatrix. 
+The second argument should contain two folders `proteome` and `hogmap`. The output will be the multiple sequence alignment supermatrix.
 
 
 Finally, you could run a tree inference method
@@ -61,8 +61,25 @@ Finally, you could run a tree inference method
 fasttree _20_msa_concatanated.txt
 
 (CHLSB:0.007967770,PAPAN:0.009104705,(HUMAN:0.012101579,((AtlanticCanary:0.327152404,(MOUSE:0.121086106,CHILA:0.087558595)0.971:0.015068557)0.167:0.000847169,WoodlandKingfisher:0.353362694)1.000:0.041260314)1.000:0.010528717);
-
 ```
+
+
+
+
+
+# bird data set
+
+We used following thresholds for bird dataset:
+```
+keep_og_treshold_species_query =   360
+threshold_least_query_sepecies_in_OG = 320
+kept_oma_species_num = 20
+ogs_keep_number = 100
+```
+
+
+
+
 
 
 done!
