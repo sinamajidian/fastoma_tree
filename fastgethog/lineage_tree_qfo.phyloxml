@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phyloxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd" xmlns="http://www.phyloxml.org">
+   <phylogeny rooted="true">
+      <name>SwissTree speciestree for QfO 2018 dataset</name>
+<clade>
+<taxonomy>
+<id provider="uniprot">-1</id>
+<scientific_name>LUCA</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">2157</id>
+<scientific_name>Archaea</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">374847</id><code>KORCO</code><scientific_name>Korarchaeum cryptofilum (strain OPF8)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">273057</id><code>SACS2</code><scientific_name>Sulfolobus solfataricus (strain ATCC 35092 / DSM 1617 / JCM 11322 / P2)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">28890</id>
+<scientific_name>Euryarchaeota</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">64091</id><code>HALSA</code><scientific_name>Halobacterium salinarum (strain ATCC 700922 / JCM 11081 / NRC-1)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">243232</id><code>METJA</code><scientific_name>Methanocaldococcus jannaschii (strain ATCC 43067 / DSM 2661 / JAL-1 / JCM 10045 / NBRC 100440)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">188937</id><code>METAC</code><scientific_name>Methanosarcina acetivorans (strain ATCC 35395 / DSM 2834 / JCM 12185 / C2A)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">69014</id><code>THEKO</code><scientific_name>Thermococcus kodakarensis (strain ATCC BAA-918 / JCM 12380 / KOD1)</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">436308</id><code>NITMS</code><scientific_name>Nitrosopumilus maritimus (strain SCM1)</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">2</id>
+<scientific_name>Bacteria</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">1760</id>
+<scientific_name>Actinobacteria</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">83332</id><code>MYCTU</code><scientific_name>Mycobacterium tuberculosis (strain ATCC 25618 / H37Rv)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">100226</id><code>STRCO</code><scientific_name>Streptomyces coelicolor (strain ATCC BAA-471 / A3(2) / M145)</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">224324</id><code>AQUAE</code><scientific_name>Aquifex aeolicus (strain VF5)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">226186</id><code>BACTN</code><scientific_name>Bacteroides thetaiotaomicron (strain ATCC 29148 / DSM 2079 / NCTC 10582 / E50 / VPI-5482)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">272561</id><code>CHLTR</code><scientific_name>Chlamydia trachomatis (strain D/UW-3/Cx)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">324602</id><code>CHLAA</code><scientific_name>Chloroflexus aurantiacus (strain ATCC 29366 / DSM 635 / J-10-fl)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">1117</id>
+<scientific_name>Cyanobacteria</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">251221</id><code>GLOVI</code><scientific_name>Gloeobacter violaceus (strain PCC 7421)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">1111708</id><code>SYNY3</code><scientific_name>Synechocystis sp. (strain PCC 6803 / Kazusa)</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">243230</id><code>DEIRA</code><scientific_name>Deinococcus radiodurans (strain ATCC 13939 / DSM 20539 / JCM 16871 / LMG 4051 / NBRC 15346 / NCIMB 9279 / R1 / VKM B-1422)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">515635</id><code>DICTD</code><scientific_name>Dictyoglomus turgidum (strain Z-1310 / DSM 6724)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">224308</id><code>BACSU</code><scientific_name>Bacillus subtilis (strain 168)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">190304</id><code>FUSNN</code><scientific_name>Fusobacterium nucleatum subsp. nucleatum (strain ATCC 25586 / CIP 101130 / JCM 8532 / LMG 13131)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">289376</id><code>THEYD</code><scientific_name>Thermodesulfovibrio yellowstonii (strain ATCC 51303 / DSM 11347 / YP87)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">243090</id><code>RHOBA</code><scientific_name>Rhodopirellula baltica (strain DSM 10527 / NCIMB 13988 / SH1)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">1224</id>
+<scientific_name>Proteobacteria</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">224911</id><code>BRADU</code><scientific_name>Bradyrhizobium diazoefficiens (strain JCM 10833 / IAM 13628 / NBRC 14792 / USDA 110)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">122586</id><code>NEIMB</code><scientific_name>Neisseria meningitidis serogroup B (strain MC58)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">1236</id>
+<scientific_name>Gammaproteobacteria</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">83333</id><code>ECOLI</code><scientific_name>Escherichia coli (strain K12)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">208964</id><code>PSEAE</code><scientific_name>Pseudomonas aeruginosa (strain ATCC 15692 / DSM 22644 / CIP 104116 / JCM 14847 / LMG 12228 / 1C / PRS 101 / PAO1)</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">68525</id>
+<scientific_name>delta/epsilon subdivisions</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">243231</id><code>GEOSL</code><scientific_name>Geobacter sulfurreducens (strain ATCC 51573 / DSM 12127 / PCA)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">85962</id><code>HELPY</code><scientific_name>Helicobacter pylori (strain ATCC 700392 / 26695)</scientific_name></taxonomy></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">189518</id><code>LEPIN</code><scientific_name>Leptospira interrogans serogroup Icterohaemorrhagiae serovar Lai (strain 56601)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">243273</id><code>MYCGE</code><scientific_name>Mycoplasma genitalium (strain ATCC 33530 / G-37 / NCTC 10195)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">243274</id><code>THEMA</code><scientific_name>Thermotoga maritima (strain ATCC 43589 / MSB8 / DSM 3109 / JCM 10099)</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">2759</id>
+<scientific_name>Eukaryota</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">33630</id>
+<scientific_name>Alveolata</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">36329</id><code>PLAF7</code><scientific_name>Plasmodium falciparum (isolate 3D7)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">5888</id><code>PARTE</code><scientific_name>Paramecium tetraurelia</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">44689</id><code>DICDI</code><scientific_name>Dictyostelium discoideum</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">5664</id><code>LEIMA</code><scientific_name>Leishmania major</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">184922</id><code>GIAIC</code><scientific_name>Giardia intestinalis (strain ATCC 50803 / WB clone C6)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">33154</id>
+<scientific_name>Opisthokonta</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">81824</id><code>MONBE</code><scientific_name>Monosiga brevicollis</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">4751</id>
+<scientific_name>Fungi</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">684364</id><code>BATDJ</code><scientific_name>Batrachochytrium dendrobatidis (strain JAM81 / FGSC 10211)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">451864</id>
+<scientific_name>Dikarya</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">4890</id>
+<scientific_name>Ascomycota</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">284812</id><code>SCHPO</code><scientific_name>Schizosaccharomyces pombe (strain 972 / ATCC 24843)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">716545</id>
+<scientific_name>saccharomyceta</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">716546</id>
+<scientific_name>leotiomyceta</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">330879</id><code>ASPFU</code><scientific_name>Neosartorya fumigata (strain ATCC MYA-4609 / Af293 / CBS 101355 / FGSC A1100)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">321614</id><code>PHANO</code><scientific_name>Phaeosphaeria nodorum (strain SN15 / ATCC MYA-4574 / FGSC 10173)</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">715989</id>
+<scientific_name>sordariomyceta</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">665079</id><code>SCLS1</code><scientific_name>Sclerotinia sclerotiorum (strain ATCC 18683 / 1980 / Ss-1)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">367110</id><code>NEUCR</code><scientific_name>Neurospora crassa (strain ATCC 24698 / 74-OR23-1A / CBS 708.71 / DSM 1257 / FGSC 987)</scientific_name></taxonomy></clade></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">4892</id>
+<scientific_name>Saccharomycetales</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">237561</id><code>CANAL</code><scientific_name>Candida albicans (strain SC5314 / ATCC MYA-2876)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">284591</id><code>YARLI</code><scientific_name>Yarrowia lipolytica (strain CLIB 122 / E 150)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">559292</id><code>YEAST</code><scientific_name>Saccharomyces cerevisiae (strain ATCC 204508 / S288c)</scientific_name></taxonomy></clade></clade></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">5204</id>
+<scientific_name>Basidiomycota</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">214684</id><code>CRYNJ</code><scientific_name>Cryptococcus neoformans var. neoformans serotype D (strain JEC21 / ATCC MYA-565)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">418459</id><code>PUCGT</code><scientific_name>Puccinia graminis f. sp. tritici (strain CRL 75-36-700-3 / race SCCL)</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">237631</id><code>USTMA</code><scientific_name>Ustilago maydis (strain 521 / FGSC 9021)</scientific_name></taxonomy></clade></clade></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">6072</id>
+<scientific_name>Eumetazoa</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">33213</id>
+<scientific_name>Bilateria</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">7711</id>
+<scientific_name>Chordata</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">7739</id><code>BRAFL</code><scientific_name>Branchiostoma floridae</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">117571</id>
+<scientific_name>Euteleostomi</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">41665</id>
+<scientific_name>Neopterygii</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">7918</id><code>LEPOC</code><scientific_name>Lepisosteus oculatus</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">186625</id>
+<scientific_name>Clupeocephala</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">8090</id><code>ORYLA</code><scientific_name>Oryzias latipes</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">7955</id><code>DANRE</code><scientific_name>Danio rerio</scientific_name></taxonomy></clade></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">32523</id>
+<scientific_name>Tetrapoda</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">32524</id>
+<scientific_name>Amniota</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">32525</id>
+<scientific_name>Theria</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">1437010</id>
+<scientific_name>Boreoeutheria</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">314146</id>
+<scientific_name>Euarchontoglires</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">39107</id>
+<scientific_name>Murinae</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">10090</id><code>MOUSE</code><scientific_name>Mus musculus</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">10116</id><code>RATNO</code><scientific_name>Rattus norvegicus</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">207598</id>
+<scientific_name>Homininae</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">9595</id><code>GORGO</code><scientific_name>Gorilla gorilla gorilla</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">9606</id><code>HUMAN</code><scientific_name>Homo sapiens</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">9598</id><code>PANTR</code><scientific_name>Pan troglodytes</scientific_name></taxonomy></clade></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">314145</id>
+<scientific_name>Laurasiatheria</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">9615</id><code>CANLF</code><scientific_name>Canis lupus familiaris</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">9913</id><code>BOVIN</code><scientific_name>Bos taurus</scientific_name></taxonomy></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">13616</id><code>MONDO</code><scientific_name>Monodelphis domestica</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">9031</id><code>CHICK</code><scientific_name>Gallus gallus</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">8364</id><code>XENTR</code><scientific_name>Xenopus tropicalis</scientific_name></taxonomy></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">7719</id><code>CIOIN</code><scientific_name>Ciona intestinalis</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">33317</id>
+<scientific_name>Protostomia</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">1206794</id>
+<scientific_name>Ecdysozoa</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">6239</id><code>CAEEL</code><scientific_name>Caenorhabditis elegans</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">6656</id>
+<scientific_name>Arthropoda</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">6945</id><code>IXOSC</code><scientific_name>Ixodes scapularis</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">33392</id>
+<scientific_name>Holometabola</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">7070</id><code>TRICA</code><scientific_name>Tribolium castaneum</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">7147</id>
+<scientific_name>Diptera</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">7227</id><code>DROME</code><scientific_name>Drosophila melanogaster</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">7165</id><code>ANOGA</code><scientific_name>Anopheles gambiae</scientific_name></taxonomy></clade></clade></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">6412</id><code>HELRO</code><scientific_name>Helobdella robusta</scientific_name></taxonomy></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">45351</id><code>NEMVE</code><scientific_name>Nematostella vectensis</scientific_name></taxonomy></clade></clade></clade>
+<clade><taxonomy><id provider="uniprot">5722</id><code>TRIVA</code><scientific_name>Trichomonas vaginalis</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">33634</id>
+<scientific_name>Stramenopiles</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">35128</id><code>THAPS</code><scientific_name>Thalassiosira pseudonana</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">164328</id><code>PHYRM</code><scientific_name>Phytophthora ramorum</scientific_name></taxonomy></clade></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">33090</id>
+<scientific_name>Viridiplantae</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">3055</id><code>CHLRE</code><scientific_name>Chlamydomonas reinhardtii</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">3193</id>
+<scientific_name>Embryophyta</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">3218</id><code>PHYPA</code><scientific_name>Physcomitrella patens subsp. patens</scientific_name></taxonomy></clade>
+<clade>
+<taxonomy>
+<id provider="uniprot">1437183</id>
+<scientific_name>Mesangiospermae</scientific_name>
+</taxonomy>
+<clade>
+<taxonomy>
+<id provider="uniprot">4479</id>
+<scientific_name>Poaceae</scientific_name>
+</taxonomy>
+<clade><taxonomy><id provider="uniprot">39947</id><code>ORYSJ</code><scientific_name>Oryza sativa subsp. japonica</scientific_name></taxonomy></clade>
+<clade><taxonomy><id provider="uniprot">4577</id><code>MAIZE</code><scientific_name>Zea mays</scientific_name></taxonomy></clade></clade>
+<clade><taxonomy><id provider="uniprot">3702</id><code>ARATH</code><scientific_name>Arabidopsis thaliana</scientific_name></taxonomy></clade></clade></clade></clade></clade></clade>
+</phylogeny>
+</phyloxml>
