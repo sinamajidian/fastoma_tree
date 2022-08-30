@@ -1,5 +1,5 @@
 
-# FastOMA
+# FastOMA (under development)
 
 FastOMA is a novel and fast pipeline for species tree inference using placement in Hierarchical Orthologous Groups (HOGs).
 
